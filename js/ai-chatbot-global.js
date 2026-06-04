@@ -98,7 +98,42 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
     msgs.insertAdjacentHTML('beforeend', `<div class="cp-ai-msg bot" id="${tid}"><span class="cp-ai-typing"><span></span><span></span><span></span></span><span style="font-size:.68rem;opacity:.5;margin-left:.35rem">Searching…</span></div>`);
     msgs.scrollTop = msgs.scrollHeight;
 
+    // Local-first search: look inside window.CMS_DATA for matches
     const D = window.CMS_DATA || {};
+    const qLower = q.toLowerCase();
+    const localMatches = [];
+    const gather = (arr, type) => {
+      if (!Array.isArray(arr)) return;
+      for (let i=0;i<arr.length && localMatches.length<6;i++) {
+        const it = arr[i];
+        let matched = false;
+        if (typeof window.matchesTextSearch === 'function') matched = matchesTextSearch(it, qLower);
+        else matched = Object.values(it||{}).some(v => String(v||'').toLowerCase().includes(qLower));
+        if (matched) localMatches.push({type, item: it});
+      }
+    };
+    gather(D.Scholarships, 'scholarship');
+    gather(D.Jobs, 'job');
+    gather(D.Internships, 'internship');
+    gather(D.Exams, 'exam');
+    gather(D.Books, 'book');
+
+    if (localMatches.length > 0) {
+      // Prefer local results: render top 3 inline in chat as cards/list
+      const top = localMatches.slice(0,3);
+      const rendered = top.map(m => {
+        try {
+          const renderer = m.type === 'scholarship' ? window.cardScholarship : m.type === 'job' ? window.cardJob : m.type === 'internship' ? window.cardInternship : m.type === 'exam' ? window.cardExam : window.cardBook;
+          if (typeof renderer === 'function') return renderer(m.item);
+        } catch (e) {}
+        return `<div style="padding:.5rem .6rem;border-radius:8px;border:1px solid #eee;margin-bottom:.5rem"><strong>${esc(m.item.title||m.item.name||'Untitled')}</strong><div style="font-size:.86rem;color:#6b7280">${esc(m.item.organization||m.item.company||m.item.institution||'')}</div></div>`;
+      }).join('');
+      const el = document.getElementById(tid);
+      if (el) el.outerHTML = `<div class="cp-ai-msg bot">Here are results from this site:<div style="margin-top:.6rem">${rendered}</div></div>`;
+      inp.disabled = false; inp.focus(); msgs.scrollTop = msgs.scrollHeight; return;
+    }
+
+    // No local match — fallback to API web search
     const ctx = [
       'Scholarships: '+(D.Scholarships||[]).slice(0,3).map(x=>x.title).filter(Boolean).join(', '),
       'Jobs: '+(D.Jobs||[]).slice(0,3).map(x=>x.title).filter(Boolean).join(', '),
@@ -107,7 +142,7 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
     ].filter(s=>!s.endsWith(': ')).join(' | ');
 
     try {
-      const r    = await fetch('/api/gemini-chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:q,context:ctx}) });
+      const r    = await fetch('/api/gemini-chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:q,context:ctx,allowWebFallback:true}) });
       const data = await r.json();
       const reply = data.reply || data.message || 'Sorry, I could not get a response right now.';
       const webBadge = data.hasWebSearch ? ' <span style="font-size:.62rem;opacity:.45">🌐</span>' : '';

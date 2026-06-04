@@ -1773,6 +1773,30 @@ document.addEventListener('DOMContentLoaded', () => {
       if (input) input.value = q;
       runSearch(q);
     }
+
+    // Header search input: allow Enter to navigate to search page or run search inline
+    try {
+      const navInput = document.getElementById('navSearchInput');
+      if (navInput && !navInput._ch_header_search_bound) {
+        navInput._ch_header_search_bound = true;
+        navInput.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          const qv = (navInput.value || '').trim();
+          if (!qv) return;
+          const current = location.pathname.split('/').pop() || 'index.html';
+          const target = 'search.html?q=' + encodeURIComponent(qv);
+          if (current === 'search.html') {
+            const si = document.getElementById('searchInput');
+            if (si) si.value = qv;
+            if (typeof runSearch === 'function') runSearch();
+            return;
+          }
+          location.href = target;
+        });
+      }
+    } catch (e) {
+      // noop
+    }
   });
 });
 
