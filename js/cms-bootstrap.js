@@ -18,49 +18,7 @@
   window._CMS_READY             = window._CMS_READY || false;
   window._CMS_CALLBACKS         = window._CMS_CALLBACKS || [];
   window._CMS_REFRESH_LISTENERS = window._CMS_REFRESH_LISTENERS || [];
-
-  // ── AdSense integration (global, safe, non-blocking)
-  // Injects the AdSense meta tag and async script exactly once per page.
-  // Uses a guard to prevent duplicate insertion and defers insertion
-  // until `document.head` is available to avoid render-blocking.
-  (function injectAdSense() {
-    if (window._CAREERPK_ADSENSE_INJECTED) return;
-    window._CAREERPK_ADSENSE_INJECTED = true;
-
-    var ADSENSE_CLIENT = 'ca-pub-5468385790252026';
-    var ADSENSE_SCRIPT_SRC = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + ADSENSE_CLIENT;
-
-    function doInsert() {
-      try {
-        // Meta tag (only once)
-        if (!document.head.querySelector('meta[name="google-adsense-account"]')) {
-          var m = document.createElement('meta');
-          m.name = 'google-adsense-account';
-          m.content = ADSENSE_CLIENT;
-          document.head.appendChild(m);
-        }
-
-        // Script (async, non-blocking)
-        if (!document.head.querySelector('script[data-careerpk-adsense]')) {
-          var s = document.createElement('script');
-          s.async = true;
-          s.src = ADSENSE_SCRIPT_SRC;
-          s.setAttribute('crossorigin', 'anonymous');
-          s.setAttribute('data-careerpk-adsense', ADSENSE_CLIENT);
-          // Append to head to keep semantics (meta + script in head)
-          document.head.appendChild(s);
-        }
-      } catch (e) {
-        console.error('[CareerPK] AdSense injection failed:', e);
-      }
-    }
-
-    if (document.head) {
-      doInsert();
-    } else {
-      document.addEventListener('DOMContentLoaded', doInsert, { once: true });
-    }
-  })();
+  window._CAREERPK_ADSENSE_INJECTED = window._CAREERPK_ADSENSE_INJECTED || false;
 
   // ── Public API ─────────────────────────────────────────────
   window.onCMSReady = function (fn) {
