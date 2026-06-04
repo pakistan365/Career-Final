@@ -84,6 +84,76 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
 
   function esc(v) { return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+  function normalizeQuery(value) {
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function getCategoryForQuery(query) {
+    if (/scholarship|grant|fellowship|fund|financial aid|scholar/i.test(query)) return 'Scholarships';
+    if (/job|career|vacancy|hiring|recruit|position|role/i.test(query)) return 'Jobs';
+    if (/internship|intern|training|apprentice/i.test(query)) return 'Internships';
+    if (/exam|test|result|syllabus|mdcat|ppsc|css|ecat|entry/i.test(query)) return 'Exams';
+    if (/book|pdf|material|notes|study|guide|textbook/i.test(query)) return 'Books';
+    return '';
+  }
+
+  function getLocalResults(query, sources, limit = 5) {
+    const matches = [];
+    const mq = normalizeQuery(query);
+    if (!mq) return matches;
+
+    for (const source of sources) {
+      const rows = (window.CMS_DATA || {})[source.key] || [];
+      for (const row of rows) {
+        try {
+          if (matchesTextSearch(row, mq)) {
+            matches.push({ type: source.type, item: row, source: source.key });
+            if (matches.length >= limit) return matches;
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+    }
+    return matches;
+  }
+
+  function renderLocalResultCards(items) {
+    return items.map(m => {
+      const title = esc(m.item.title || m.item.name || '(no title)');
+      const desc = esc(m.item.short_description || m.item.description || m.item.summary || 'Click to view details.');
+      const url = `opportunity.html?type=${encodeURIComponent(m.type)}&id=${encodeURIComponent(m.item.id || m.item.slug || m.item.key || title)}`;
+      return `<div style="border:1px solid rgba(0,0,0,.08);padding:.7rem;border-radius:10px;margin-bottom:.5rem;background:rgba(15,118,110,.04)"><a href="${url}" style="color:var(--text-main);text-decoration:none;font-weight:700">${title}</a><div style="font-size:.82rem;color:var(--text-muted);margin-top:.35rem">${desc}</div><div style="margin-top:.4rem;font-size:.75rem;color:var(--text-muted)">Category: ${esc(m.source)}</div></div>`;
+    }).join('');
+  }
+
+  function renderFallbackRecommendations(query) {
+    const sources = [
+      { key: 'Scholarships', type: 'scholarship' },
+      { key: 'Jobs', type: 'job' },
+      { key: 'Internships', type: 'internship' },
+      { key: 'Exams', type: 'exam' },
+      { key: 'Books', type: 'book' },
+    ];
+    const category = getCategoryForQuery(query);
+    const data = window.CMS_DATA || {};
+    const recommendations = [];
+
+    if (category) {
+      const items = (data[category] || []).slice(0, 4);
+      items.forEach(item => recommendations.push({ type: category, item }));
+    }
+
+    if (!recommendations.length) {
+      sources.forEach(source => {
+        const items = (data[source.key] || []).slice(0, 2);
+        items.forEach(item => recommendations.push({ type: source.key, item }));
+      });
+    }
+
+    return recommendations.slice(0, 6);
+  }
+
   async function cpSendAI() {
     const inp  = document.getElementById('cpAiInput');
     const msgs = document.getElementById('cpAiMsgs');
@@ -98,64 +168,53 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
     msgs.insertAdjacentHTML('beforeend', `<div class="cp-ai-msg bot" id="${tid}"><span class="cp-ai-typing"><span></span><span></span><span></span></span><span style="font-size:.68rem;opacity:.5;margin-left:.35rem">Searching…</span></div>`);
     msgs.scrollTop = msgs.scrollHeight;
 
-    // Local-first: search CMS_DATA for matching items and return cards if present
-    const D = window.CMS_DATA || {};
     const sources = [
-      {key:'Scholarships', type:'scholarship'},
-      {key:'Jobs', type:'job'},
-      {key:'Internships', type:'internship'},
-      {key:'Exams', type:'exam'},
-      {key:'Books', type:'book'},
+      { key: 'Scholarships', type: 'scholarship' },
+      { key: 'Jobs', type: 'job' },
+      { key: 'Internships', type: 'internship' },
+      { key: 'Exams', type: 'exam' },
+      { key: 'Books', type: 'book' },
     ];
 
-    let localMatches = [];
-    try {
-      const mq = q.toLowerCase();
-      for (const s of sources) {
-        const rows = D[s.key] || [];
-        for (let i=0;i<rows.length;i++) {
-          const item = rows[i];
-          try {
-            const matched = (typeof window.matchesTextSearch === 'function') ? matchesTextSearch(item, mq) : Object.values(item||{}).some(v => String(v||'').toLowerCase().includes(mq));
-            if (matched) {
-              localMatches.push({type:s.type, item});
-              if (localMatches.length >= 6) break;
-            }
-          } catch(e) { /* ignore malformed entries */ }
-        }
-        if (localMatches.length >= 6) break;
-      }
-    } catch (e) { localMatches = []; }
+    const localMatches = getLocalResults(q, sources, 6);
+    const el = document.getElementById(tid);
 
     if (localMatches.length > 0) {
-      // Render found items as quick cards in the chat and skip external API
-      const el = document.getElementById(tid);
       if (el) {
-        const html = localMatches.map(m => {
-          const title = esc(m.item.title || m.item.name || '(no title)');
-          const url = `opportunity.html?type=${encodeURIComponent(m.type)}&id=${encodeURIComponent(m.item.id)}`;
-          return `<div style="border:1px solid rgba(0,0,0,.06);padding:.6rem;border-radius:8px;margin-bottom:.45rem"><a href="${url}" style="color:var(--text-main);text-decoration:none;font-weight:600">${title}</a><div style="font-size:.82rem;color:var(--text-muted);margin-top:.25rem">${esc(m.item.short_description||m.item.description||'')}</div></div>`;
-        }).join('');
-        el.outerHTML = `<div class="cp-ai-msg bot">Here are local matches I found:<div style="margin-top:.6rem">${html}</div></div>`;
+        el.outerHTML = `<div class="cp-ai-msg bot">Here are relevant results from Career Pakistan:<div style="margin-top:.6rem">${renderLocalResultCards(localMatches)}</div></div>`;
       }
     } else {
-      const ctx = [
-        'Scholarships: '+(D.Scholarships||[]).slice(0,3).map(x=>x.title).filter(Boolean).join(', '),
-        'Jobs: '+(D.Jobs||[]).slice(0,3).map(x=>x.title).filter(Boolean).join(', '),
-        'Exams: '+(D.Exams||[]).slice(0,3).map(x=>x.title).filter(Boolean).join(', '),
-        'Internships: '+(D.Internships||[]).slice(0,2).map(x=>x.title).filter(Boolean).join(', '),
-      ].filter(s=>!s.endsWith(': ')).join(' | ');
+      const ctx = sources.map(source => {
+        const items = (window.CMS_DATA || {})[source.key] || [];
+        return `${source.key}: ${items.slice(0, 3).map(x => x.title || x.name || '').filter(Boolean).join(', ')}`;
+      }).filter(Boolean).join(' | ');
 
+      let apiReply = null;
       try {
-        const r    = await fetch('/api/gemini-chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:q,context:ctx}) });
-        const data = await r.json();
-        const reply = data.reply || data.message || 'Sorry, I could not get a response right now.';
-        const webBadge = data.hasWebSearch ? ' <span style="font-size:.62rem;opacity:.45">🌐</span>' : '';
-        const el = document.getElementById(tid);
-        if (el) el.outerHTML = `<div class="cp-ai-msg bot">${esc(reply)}${webBadge}</div>`;
-      } catch {
-        const el = document.getElementById(tid);
-        if (el) el.outerHTML = `<div class="cp-ai-msg bot">⚠️ Connection error. Please try again.</div>`;
+        const response = await fetch('/api/gemini-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: q, context: ctx })
+        });
+        if (response.ok) {
+          const data = await response.json();
+          apiReply = data.reply || data.message || null;
+        }
+      } catch (err) {
+        apiReply = null;
+      }
+
+      if (apiReply) {
+        const webBadge = apiReply && /web/i.test(apiReply) ? ' <span style="font-size:.62rem;opacity:.45">🌐</span>' : '';
+        if (el) el.outerHTML = `<div class="cp-ai-msg bot">${esc(apiReply)}${webBadge}</div>`;
+      } else {
+        const recommended = renderFallbackRecommendations(q);
+        if (el) {
+          const message = category
+            ? `I couldn't reach the external chat service, but here are ${category.toLowerCase()} recommendations from inside Career Pakistan:`
+            : 'I could not contact the remote API. Here are some useful recommendations from inside Career Pakistan:';
+          el.outerHTML = `<div class="cp-ai-msg bot">${esc(message)}<div style="margin-top:.6rem">${renderLocalResultCards(recommended)}</div></div>`;
+        }
       }
     }
 
