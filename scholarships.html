@@ -160,6 +160,9 @@
     <div class="container">
       <div class="filter-row">
         <div class="filter-left">
+          <label class="sr-only" for="pageSearchInput">Search scholarships</label>
+          <input type="search" id="pageSearchInput" class="filter-select" placeholder="Search scholarships, university, location..." oninput="applyFilters()" />
+
           <label class="sr-only" for="filterRegion">Select scholarship region</label>
           <select class="filter-select" id="filterRegion" onchange="applyFilters()">
             <option value="">🌍 All Scholarships</option>
@@ -198,9 +201,11 @@
         <div class="filter-right">
           <label class="filter-label" for="sortBy">Sort:</label>
           <select class="filter-select" id="sortBy" onchange="applyFilters()">
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
+            <option value="newest">Latest</option>
+            <option value="closing-soon">Near Deadline</option>
             <option value="deadline">Deadline</option>
+            <option value="oldest">Oldest</option>
+            <option value="expired">Expired</option>
           </select>
         </div>
       </div>
@@ -329,6 +334,7 @@
     }
 
     function applyFilters() {
+      const query = document.getElementById('pageSearchInput').value;
       const region = document.getElementById('filterRegion').value;
       const funding = document.getElementById('filterFunding').value;
       const type = document.getElementById('filterType').value;
@@ -337,10 +343,11 @@
 
       let filtered = allData.filter((s) => {
         return (
+          matchesTextSearch(s, query) &&
           scholarshipMatchesCountry(s, region) &&
-          (!funding || s.funding === funding) &&
-          (!type || s.type === type) &&
-          (!level || (s.level || '').includes(level))
+          (!funding || normalizeText(s.funding) === normalizeText(funding)) &&
+          (!type || normalizeText(s.type) === normalizeText(type)) &&
+          (!level || normalizeText(s.level).includes(normalizeText(level)))
         );
       });
 
@@ -354,7 +361,7 @@
     }
 
     function clearFilters() {
-      ['filterRegion', 'filterFunding', 'filterType', 'filterLevel'].forEach((id) => {
+      ['pageSearchInput', 'filterRegion', 'filterFunding', 'filterType', 'filterLevel'].forEach((id) => {
         document.getElementById(id).value = '';
       });
       document.getElementById('sortBy').value = 'newest';

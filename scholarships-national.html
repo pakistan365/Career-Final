@@ -102,6 +102,35 @@
         <a href="scholarships-international.html" class="sw-ql">🌎 International</a>
       </div>
 
+      <div class="filter-bar" style="margin-bottom:1rem">
+        <div class="filter-row" style="gap:.75rem;flex-wrap:wrap;display:flex;align-items:center">
+          <input type="search" id="pageSearchInput" class="filter-select" placeholder="Search national scholarships, university, location..." oninput="applyFilters()" />
+          <select class="filter-select" id="filterFunding" onchange="applyFilters()">
+            <option value="">All Funding</option>
+            <option value="Fully Funded">Fully Funded</option>
+            <option value="Partial">Partial</option>
+          </select>
+          <select class="filter-select" id="filterType" onchange="applyFilters()">
+            <option value="">All Types</option>
+            <option value="Government">Government</option>
+            <option value="NGO">NGO</option>
+          </select>
+          <select class="filter-select" id="filterLevel" onchange="applyFilters()">
+            <option value="">All Levels</option>
+            <option value="Undergraduate">Undergraduate</option>
+            <option value="Masters">Masters</option>
+            <option value="Matric">Matric / Inter</option>
+          </select>
+          <select class="filter-select" id="sortBy" onchange="applyFilters()">
+            <option value="newest">Latest</option>
+            <option value="closing-soon">Near Deadline</option>
+            <option value="deadline">Deadline</option>
+            <option value="oldest">Oldest</option>
+            <option value="expired">Expired</option>
+          </select>
+          <button class="btn-clear" type="button" onclick="clearFilters()"><i class="fa fa-times"></i> Clear</button>
+        </div>
+      </div>
       <div class="results-info"><span id="resultsCount">Loading...</span></div>
       <div class="cards-grid" id="resultsGrid"><div class="skeleton-card"></div></div>
       <div class="empty-state" id="emptyState" style="display:none">
@@ -198,11 +227,33 @@
     }
 
     function applyFilters() {
-      const sort = 'newest';
-      const filtered = sortItems(allData, sort);
+      const query = document.getElementById('pageSearchInput').value;
+      const funding = document.getElementById('filterFunding').value;
+      const type = document.getElementById('filterType').value;
+      const level = document.getElementById('filterLevel').value;
+      const sort = document.getElementById('sortBy').value;
+
+      let filtered = allData.filter((s) => {
+        return (
+          matchesTextSearch(s, query) &&
+          (!funding || normalizeText(s.funding) === normalizeText(funding)) &&
+          (!type || normalizeText(s.type) === normalizeText(type)) &&
+          (!level || normalizeText(s.level).includes(normalizeText(level)))
+        );
+      });
+
+      filtered = sortItems(filtered, sort);
       document.getElementById('resultsCount').textContent = `${filtered.length} national scholarship${filtered.length !== 1 ? 's' : ''} found`;
       renderCards(filtered, 'resultsGrid', 'scholarship');
       document.getElementById('emptyState').style.display = filtered.length === 0 ? 'flex' : 'none';
+    }
+
+    function clearFilters() {
+      ['pageSearchInput', 'filterFunding', 'filterType', 'filterLevel'].forEach((id) => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('sortBy').value = 'newest';
+      applyFilters();
     }
   </script>
   <script src="js/image-optimizer.js" defer></script>

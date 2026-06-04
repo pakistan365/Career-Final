@@ -51,8 +51,33 @@
         <a href="jobs-private.html" class="sw-ql">Private Jobs</a>
         <a href="jobs-government.html" class="sw-ql active">Government Jobs</a>
       </div>
+      <div class="filter-bar" style="margin-bottom:1rem">
+        <div class="filter-row" style="gap:.75rem;flex-wrap:wrap;display:flex;align-items:center">
+          <input type="search" id="pageSearchInput" class="filter-select" placeholder="Search government jobs, department, location..." oninput="applyJobFilters()" />
+          <select class="filter-select" id="jobFilterLocation" onchange="applyJobFilters()">
+            <option value="">All Locations</option>
+            <option value="Pakistan">Pakistan</option>
+            <option value="Remote">Remote</option>
+            <option value="Onsite">Onsite</option>
+          </select>
+          <select class="filter-select" id="jobSortBy" onchange="applyJobFilters()">
+            <option value="newest">Latest</option>
+            <option value="closing-soon">Near Deadline</option>
+            <option value="deadline">Deadline</option>
+            <option value="oldest">Oldest</option>
+            <option value="expired">Expired</option>
+          </select>
+          <button class="btn-clear" type="button" onclick="clearJobFilters()"><i class="fa fa-times"></i> Clear</button>
+        </div>
+      </div>
       <div id="resultsCount" class="results-count" style="margin-bottom:.75rem;font-size:.84rem;color:var(--text-muted)">Loading…</div>
       <div class="cards-grid" id="resultsGrid"><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>
+      <div class="empty-state" id="jobEmptyState" style="display:none;margin-top:1rem">
+        <i class="fa fa-inbox"></i>
+        <h3>No government jobs found</h3>
+        <p>Try adjusting your search or sort options.</p>
+        <button class="btn btn-secondary" onclick="clearJobFilters()">Clear filters</button>
+      </div>
       <div class="card"><div class="card-content"><h2>Key Sources</h2><ul><li>FPSC</li><li>PPSC</li><li>Federal Ministries</li><li>Provincial Departments</li><li>Education Boards</li><li>Health Departments</li></ul></div></div>
       <div class="card" style="margin-top:1rem"><div class="card-content"><h3>Before you apply</h3><p>Check domicile, quota, and age-relaxation rules in the official ad notice.</p><a class="btn btn-secondary" href="jobs.html">← Back to Jobs Hub</a></div></div>
     </section>
@@ -108,7 +133,54 @@
   </div>
 </footer>
   <script src="js/app.js" defer></script>
-  <script>function _renderPage(){let items=(window.CMS_DATA.Jobs||[]).slice();if('jobs-government'==='jobs-government')items=items.filter(i=>isGovernmentType(i.type)||/government/i.test(i.category||''));if('jobs-government'==='jobs-private')items=items.filter(i=>!isGovernmentType(i.type));items=sortItems(items,'newest');const rc=document.getElementById('resultsCount');if(rc)rc.textContent=items.length+' results';if(typeof renderCards==='function'){renderCards(items,'resultsGrid','job');}}document.addEventListener('DOMContentLoaded',()=>onCMSReady(()=>{const run=()=>{if(typeof window.sortItems!=='function'||typeof window.renderCards!=='function'){setTimeout(run,120);return;} _renderPage();};run();}));</script>
+  <script>
+    let allJobs = [];
+
+    function loadJobsPage() {
+      allJobs = (window.CMS_DATA.Jobs || []).slice().filter((job) =>
+        isGovernmentType(job.type) || /government/i.test(job.category || '')
+      );
+      document.getElementById('jobEmptyState').style.display = 'none';
+      applyJobFilters();
+    }
+
+    function applyJobFilters() {
+      const query = document.getElementById('pageSearchInput').value;
+      const location = document.getElementById('jobFilterLocation').value;
+      const sort = document.getElementById('jobSortBy').value;
+
+      let filtered = allJobs.filter((job) => {
+        const matchesSearch = matchesTextSearch(job, query);
+        const matchesLocation =
+          !location ||
+          normalizeText(job.location).includes(normalizeText(location)) ||
+          normalizeText(job.country).includes(normalizeText(location));
+        return matchesSearch && matchesLocation;
+      });
+
+      filtered = sortItems(filtered, sort);
+      document.getElementById('resultsCount').textContent = `${filtered.length} government job${filtered.length !== 1 ? 's' : ''} found`;
+      renderCards(filtered, 'resultsGrid', 'job');
+      document.getElementById('jobEmptyState').style.display = filtered.length === 0 ? 'flex' : 'none';
+    }
+
+    function clearJobFilters() {
+      document.getElementById('pageSearchInput').value = '';
+      document.getElementById('jobFilterLocation').value = '';
+      document.getElementById('jobSortBy').value = 'newest';
+      applyJobFilters();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateFavCount();
+      onCMSReady(() => {
+        loadJobsPage();
+        updateFavCount();
+      });
+      registerAutoRefreshSection('Jobs', loadJobsPage);
+      initializeAutoRefreshListeners();
+    });
+  </script>
 
 <script src="js/ai-chatbot-global.js" defer></script>
 </body>

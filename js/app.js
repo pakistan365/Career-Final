@@ -1105,19 +1105,86 @@ function handleFav(id, title, type, btn) {
   }
 }
 
-function sortItems(items,sort){
-  const arr=[...items];
-  if(sort==='deadline'){
-    arr.sort((a,b)=>{
-      const da=a.deadline||a.testDate||a.test_date||'9999';
-      const db=b.deadline||b.testDate||b.test_date||'9999';
-      return new Date(da)-new Date(db);
-    });
-  }else if(sort==='oldest'){
-    arr.sort((a,b)=>new Date(a.postedDate||a.posted_date||a.date||0)-new Date(b.postedDate||b.posted_date||b.date||0));
-  }else{
-    arr.sort((a,b)=>new Date(b.postedDate||b.posted_date||b.date||0)-new Date(a.postedDate||a.posted_date||a.date||0));
+function getItemTimestampMs(item) {
+  if (!item || typeof item !== 'object') return 0;
+  const fields = ['updatedDate','updated_date','modifiedDate','modified_date','postedDate','posted_date','date'];
+  for (const field of fields) {
+    const value = item[field];
+    if (!value) continue;
+    const ts = new Date(value).getTime();
+    if (!Number.isNaN(ts) && ts > 0) return ts;
   }
+  return 0;
+}
+
+function getItemDeadlineMs(item) {
+  if (!item || typeof item !== 'object') return 0;
+  const fields = [
+    'deadline','applicationDeadline','application_deadline','registrationDeadline','registration_deadline',
+    'testDate','test_date','closingDate','closing_date'
+  ];
+  for (const field of fields) {
+    const value = item[field];
+    if (!value) continue;
+    const ts = new Date(value).getTime();
+    if (!Number.isNaN(ts) && ts > 0) return ts;
+  }
+  return 0;
+}
+
+function isItemExpired(item) {
+  const deadline = getItemDeadlineMs(item);
+  return deadline > 0 && deadline < Date.now();
+}
+
+function matchesTextSearch(item, query) {
+  if (!query) return true;
+  const q = normalizeText(query);
+  if (!q) return true;
+  if (!item || typeof item !== 'object') return false;
+
+  return Object.values(item).some((value) => {
+    if (value === null || value === undefined) return false;
+    if (Array.isArray(value)) {
+      return value.some(v => normalizeText(v).includes(q));
+    }
+    if (typeof value === 'object') return false;
+    return normalizeText(value).includes(q);
+  });
+}
+
+function sortItems(items, sort) {
+  const arr = [...items];
+  const now = Date.now();
+
+  if (sort === 'deadline' || sort === 'closing-soon') {
+    arr.sort((a, b) => {
+      const da = getItemDeadlineMs(a) || Number.MAX_SAFE_INTEGER;
+      const db = getItemDeadlineMs(b) || Number.MAX_SAFE_INTEGER;
+      const aExpired = da < now;
+      const bExpired = db < now;
+      if (sort === 'closing-soon' && aExpired !== bExpired) {
+        return aExpired ? 1 : -1;
+      }
+      if (da !== db) return da - db;
+      return getItemTimestampMs(b) - getItemTimestampMs(a);
+    });
+  } else if (sort === 'expired') {
+    arr.sort((a, b) => {
+      const aExpired = isItemExpired(a);
+      const bExpired = isItemExpired(b);
+      if (aExpired !== bExpired) return aExpired ? -1 : 1;
+      const aDeadline = getItemDeadlineMs(a);
+      const bDeadline = getItemDeadlineMs(b);
+      if (aDeadline !== bDeadline) return bDeadline - aDeadline;
+      return getItemTimestampMs(b) - getItemTimestampMs(a);
+    });
+  } else if (sort === 'oldest') {
+    arr.sort((a, b) => getItemTimestampMs(a) - getItemTimestampMs(b));
+  } else {
+    arr.sort((a, b) => getItemTimestampMs(b) - getItemTimestampMs(a));
+  }
+
   return arr;
 }
 

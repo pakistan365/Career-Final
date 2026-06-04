@@ -72,7 +72,10 @@
       <div class="container">
         <div class="filter-row">
           <div class="filter-left">
-            <label class="sr-only" for="jobFilterType">Job Type</label>
+            <label class="sr-only" for="jobSearchInput">Search jobs</label>
+          <input type="search" id="jobSearchInput" class="filter-select" placeholder="Search job title, company, location..." oninput="applyJobFilters()" />
+
+          <label class="sr-only" for="jobFilterType">Job Type</label>
             <select class="filter-select" id="jobFilterType" onchange="applyJobFilters()">
               <option value="">All Job Types</option>
               <option value="Government">Government</option>
@@ -97,9 +100,11 @@
           <div class="filter-right">
             <label class="filter-label" for="jobSortBy">Sort by</label>
             <select class="filter-select" id="jobSortBy" onchange="applyJobFilters()">
-              <option value="newest">Newest</option>
+              <option value="newest">Latest</option>
+              <option value="closing-soon">Near Deadline</option>
               <option value="deadline">Deadline</option>
               <option value="oldest">Oldest</option>
+              <option value="expired">Expired</option>
             </select>
           </div>
         </div>
@@ -192,11 +197,13 @@
   }
 
   function applyJobFilters() {
+    const query = document.getElementById('jobSearchInput').value;
     const type = document.getElementById('jobFilterType').value;
     const location = document.getElementById('jobFilterLocation').value;
     const sort = document.getElementById('jobSortBy').value;
 
     let filtered = allJobs.filter((job) => {
+      const matchesSearch = matchesTextSearch(job, query);
       const matchesType =
         !type ||
         normalizeText(job.type) === normalizeText(type) ||
@@ -207,7 +214,7 @@
         normalizeText(job.location).includes(normalizeText(location)) ||
         normalizeText(job.country).includes(normalizeText(location));
 
-      return matchesType && matchesLocation;
+      return matchesSearch && matchesType && matchesLocation;
     });
 
     filtered = sortItems(filtered, sort);
@@ -217,6 +224,7 @@
   }
 
   function clearJobFilters() {
+    document.getElementById('jobSearchInput').value = '';
     document.getElementById('jobFilterType').value = '';
     document.getElementById('jobFilterLocation').value = '';
     document.getElementById('jobSortBy').value = 'newest';
