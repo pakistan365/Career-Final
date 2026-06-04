@@ -517,7 +517,7 @@ function cardScholarship(s) {
 function cardJob(j) {
   const fav = isFav(j.id, 'job');
   const src = getCardImage(j, 'job');
-  const imgHTML = src ? `<img src="${TRANSPARENT_PLACEHOLDER}" data-src="${escapeHtml(src)}" alt="${escapeHtml(j.title)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(GENERIC_IMAGE_FALLBACK)}';this.classList.remove('img-loading');this.classList.add('img-loaded');if(this.nextElementSibling){this.nextElementSibling.style.display='none';}">` : '';
+  const imgHTML = src ? `<img src="${escapeHtml(src)}" alt="${escapeHtml(j.title)}" loading="eager" decoding="async" fetchpriority="high" onerror="this.onerror=null;this.src='${escapeHtml(GENERIC_IMAGE_FALLBACK)}';this.classList.remove('img-loading');this.classList.add('img-loaded');if(this.nextElementSibling){this.nextElementSibling.style.display='none';}">` : '';
   return `
   <div class="card" data-id="${j.id}" data-type="job" role="button" tabindex="0" aria-label="View ${escapeHtml(j.title)}">
     <div class="card-img">
