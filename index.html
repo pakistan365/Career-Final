@@ -158,14 +158,10 @@ body:not(.dark) .fdot { opacity: 0.04; box-shadow: 0 0 14px rgba(15,118,110,0.2)
 .hero-search-new input::placeholder{color:rgba(233,248,252,.55);}
 .hero-search-new button{padding:.82rem 1.2rem;border:none;border-radius:10px;background:linear-gradient(135deg,#00ffe1,#2c86ff);color:#021017;font-weight:800;cursor:pointer;font-size:.9rem;white-space:nowrap;transition:.25s;}
 .hero-search-new button:hover{transform:translateY(-2px);box-shadow:0 0 26px rgba(0,255,220,.35);}
-.hero-stats-new{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:.85rem;}
-.hstat{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(0,255,220,.1);backdrop-filter:blur(6px);transition:.25s;}
-.hstat:hover{transform:translateY(-5px);border-color:#00ffe1;}
-.hstat h2{color:#6fffee;font-size:1.24rem;font-weight:800;margin:0 0 2px;}
-.hstat span{color:rgba(255,255,255,.72);font-size:.72rem;}
-.hero-pills-new{display:flex;flex-wrap:wrap;gap:.44rem;}
-.hero-pill-new{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.88);border-radius:999px;padding:.28rem .8rem;font-size:.76rem;font-weight:600;text-decoration:none;transition:.2s;backdrop-filter:blur(4px);}
+.hero-pills-new{display:flex;flex-wrap:wrap;gap:.44rem;margin-bottom:.85rem;}
+.hero-pill-new{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.88);border-radius:999px;padding:.4rem .95rem;font-size:.76rem;font-weight:600;text-decoration:none;transition:.2s;backdrop-filter:blur(4px);display:flex;align-items:center;gap:.4rem;}
 .hero-pill-new:hover{background:rgba(0,255,220,.14);border-color:#00ffe1;color:#fff;}
+.pill-count{background:rgba(0,255,220,.2);border-radius:999px;padding:.15rem .45rem;font-size:.68rem;font-weight:700;color:#6fffee;min-width:24px;text-align:center;}
 @media(max-width:900px){
   .home-hero{min-height:auto;padding:56px 0 40px;}
   .hero-inner-grid{grid-template-columns:1fr;text-align:center;gap:20px;}
@@ -173,7 +169,6 @@ body:not(.dark) .fdot { opacity: 0.04; box-shadow: 0 0 14px rgba(15,118,110,0.2)
   .hero-logo-ring{display:none;}
   .hero-sub-new{margin-inline:auto;}
   .hero-search-new{margin:0 auto .85rem;}
-  .hero-stats-new{grid-template-columns:repeat(3,minmax(0,1fr));}
   .hero-search-new{flex-direction:column;}
   .hero-pills-new{justify-content:center;}
   .fdot{display:none;}
@@ -184,10 +179,8 @@ body:not(.dark) .fdot { opacity: 0.04; box-shadow: 0 0 14px rgba(15,118,110,0.2)
   .hero-sub-new{font-size:.89rem;}
   .hero-search-new{padding:.28rem;gap:7px;border-radius:12px;}
   .hero-search-new input,.hero-search-new button{padding:.78rem .85rem;font-size:.88rem;}
-  .hero-stats-new{grid-template-columns:repeat(3,minmax(0,1fr));}
-  .hstat{padding:9px 8px;}
-  .hstat h2{font-size:1.04rem;}
-  .hero-pill-new{font-size:.72rem;}
+  .hero-pill-new{font-size:.7rem;padding:.35rem .75rem;}
+  .pill-count{font-size:.62rem;}
 }
 
 /* ── Dynamic category counters now in section headers ── */
@@ -408,21 +401,13 @@ body.dark .sw-pill:hover{background:rgba(45,212,191,.1);border-color:#2dd4bf;col
           <input type="search" id="heroSearchInput" placeholder="Search scholarships, jobs, internships, exams..." aria-label="Search Career Pakistan" onkeydown="if(event.key==='Enter'){window.location.href='search.html?q='+encodeURIComponent(this.value)}"/>
           <button onclick="window.location.href='search.html?q='+encodeURIComponent(document.getElementById('heroSearchInput').value)">Search Now</button>
         </div>
-        <div class="hero-stats-new" style="grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;">
-          <div class="hstat"><h2 id="stat-scholarships">0</h2><span>Scholarships</span></div>
-          <div class="hstat"><h2 id="stat-jobs">0</h2><span>Jobs</span></div>
-          <div class="hstat"><h2 id="stat-exams">0</h2><span>Exams</span></div>
-          <div class="hstat"><h2 id="stat-internships">0</h2><span>Internships</span></div>
-          <div class="hstat"><h2 id="stat-books">0</h2><span>Books</span></div>
-          <div class="hstat"><h2 id="stat-blogs">0</h2><span>Blog Posts</span></div>
-        </div>
         <div class="hero-pills-new">
-          <a href="scholarships.html" class="hero-pill-new">🎓 Scholarships</a>
-          <a href="jobs.html" class="hero-pill-new">💼 Jobs</a>
-          <a href="internships.html" class="hero-pill-new">🚀 Internships</a>
-          <a href="exams.html" class="hero-pill-new">📝 Exams</a>
-          <a href="books.html" class="hero-pill-new">📚 Books</a>
-          <a href="blog.html" class="hero-pill-new">✍️ Blog</a>
+          <a href="scholarships.html" class="hero-pill-new">🎓 Scholarships <span id="stat-scholarships" class="pill-count">0</span></a>
+          <a href="jobs.html" class="hero-pill-new">💼 Jobs <span id="stat-jobs" class="pill-count">0</span></a>
+          <a href="internships.html" class="hero-pill-new">🚀 Internships <span id="stat-internships" class="pill-count">0</span></a>
+          <a href="exams.html" class="hero-pill-new">📝 Exams <span id="stat-exams" class="pill-count">0</span></a>
+          <a href="books.html" class="hero-pill-new">📚 Books <span id="stat-books" class="pill-count">0</span></a>
+          <a href="blog.html" class="hero-pill-new">✍️ Blog <span id="stat-blogs" class="pill-count">0</span></a>
         </div>
         <div class="install-app-cta" aria-live="polite">
           <button type="button" class="install-app-btn" id="installAppBtn" data-install-app hidden>
