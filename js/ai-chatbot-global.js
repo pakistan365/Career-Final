@@ -57,12 +57,12 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
         <div class="cp-ai-avatar"><i class="fa fa-robot"></i></div>
         <div class="cp-ai-info">
           <div class="cp-ai-name">Career AI Assistant</div>
-          <div class="cp-ai-status"><span class="cp-ai-sdot"></span> Online — Ask me anything</div>
+          <div class="cp-ai-status"><span class="cp-ai-sdot"></span> Online — ready to help</div>
         </div>
         <button class="cp-ai-close" id="cpAiClose" aria-label="Close"><i class="fa fa-times"></i></button>
       </div>
       <div class="cp-ai-msgs" id="cpAiMsgs">
-        <div class="cp-ai-msg bot">👋 Hi! I'm your <strong>Career Pakistan AI</strong>.<br>Ask me about scholarships, jobs, exams, internships, or books in Pakistan!</div>
+        <div class="cp-ai-msg bot">👋 Hi there! I'm your friendly <strong>Career Pakistan AI</strong> assistant.<br>Ask me about scholarships, jobs, exams, internships, or books in Pakistan.</div>
       </div>
       <div class="cp-ai-footer">
         <input type="text" class="cp-ai-input" id="cpAiInput" placeholder="Ask something…" aria-label="Your question"/>
@@ -211,8 +211,8 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
         const recommended = renderFallbackRecommendations(q);
         if (el) {
           const message = category
-            ? `I couldn't reach the external chat service, but here are ${category.toLowerCase()} recommendations from inside Career Pakistan:`
-            : 'I could not contact the remote API. Here are some useful recommendations from inside Career Pakistan:';
+            ? `I couldn't reach the live assistant, but here are relevant ${category.toLowerCase()} recommendations from Career Pakistan:`
+            : 'I could not contact the live assistant. Here are useful recommendations from Career Pakistan:';
           el.outerHTML = `<div class="cp-ai-msg bot">${esc(message)}<div style="margin-top:.6rem">${renderLocalResultCards(recommended)}</div></div>`;
         }
       }
