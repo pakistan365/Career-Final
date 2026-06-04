@@ -204,12 +204,6 @@
           <div style="font-size:.8rem;opacity:.85;margin-top:.3rem">days remaining</div>
         </div>
 
-        <!-- Related Same Type -->
-        <div class="sidebar-widget" id="relatedSameWidget" style="display:none">
-          <h3 id="relatedSameTitle">More Like This</h3>
-          <div id="relatedSameList"></div>
-        </div>
-
         <!-- Related Exams -->
         <div class="sidebar-widget" id="relatedExamsWidget" style="display:none">
           <h3><i class="fa fa-file-alt" style="color:var(--primary);margin-right:.4rem"></i>Related Exams</h3>
@@ -217,11 +211,25 @@
           <a href="exams.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all exams →</a>
         </div>
 
+        <!-- Related Jobs -->
+        <div class="sidebar-widget" id="relatedJobsWidget" style="display:none">
+          <h3><i class="fa fa-briefcase" style="color:var(--primary);margin-right:.4rem"></i>Related Jobs</h3>
+          <div id="relatedJobsList"></div>
+          <a href="jobs.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all jobs →</a>
+        </div>
+
+        <!-- Related Internships -->
+        <div class="sidebar-widget" id="relatedInternshipsWidget" style="display:none">
+          <h3><i class="fa fa-rocket" style="color:var(--primary);margin-right:.4rem"></i>Related Internships</h3>
+          <div id="relatedInternshipsList"></div>
+          <a href="internships.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all internships →</a>
+        </div>
+
         <!-- Related Scholarships -->
         <div class="sidebar-widget" id="relatedScholarshipsWidget" style="display:none">
           <h3><i class="fa fa-graduation-cap" style="color:var(--primary);margin-right:.4rem"></i>Related Scholarships</h3>
           <div id="relatedScholarshipsList"></div>
-          <a href="scholarships.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all →</a>
+          <a href="scholarships.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all scholarships →</a>
         </div>
 
         <!-- Related Books -->
@@ -231,16 +239,6 @@
           <a href="books.html" style="font-size:.8rem;color:var(--primary);font-weight:600;display:block;margin-top:.5rem">View all books →</a>
         </div>
 
-        <!-- Quick Links -->
-        <div class="sidebar-widget">
-          <h3>Quick Links</h3>
-          <div style="display:flex;flex-direction:column;gap:.4rem">
-            <a href="jobs.html" style="font-size:.88rem;color:var(--text-main);padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">💼 All Jobs <i class="fa fa-chevron-right fa-xs" style="color:var(--text-muted)"></i></a>
-            <a href="scholarships.html" style="font-size:.88rem;color:var(--text-main);padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">🎓 Scholarships <i class="fa fa-chevron-right fa-xs" style="color:var(--text-muted)"></i></a>
-            <a href="exams.html" style="font-size:.88rem;color:var(--text-main);padding:.4rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">📝 Exams <i class="fa fa-chevron-right fa-xs" style="color:var(--text-muted)"></i></a>
-            <a href="books.html" style="font-size:.88rem;color:var(--text-main);padding:.4rem 0;display:flex;justify-content:space-between;align-items:center">📚 Books <i class="fa fa-chevron-right fa-xs" style="color:var(--text-muted)"></i></a>
-          </div>
-        </div>
       </aside>
 
     </div>
@@ -447,7 +445,7 @@ function renderOpportunity(item, type) {
   // Sidebar related content
   buildSidebar(item, type);
 
-  // "More Like This" grid below content
+  // "More Like This" grid below content (kept as same-type cards; only the sidebar changes by card type)
   setTimeout(() => {
     const allData = {
       job:window.CMS_DATA.Jobs||[], scholarship:window.CMS_DATA.Scholarships||[],
@@ -571,50 +569,41 @@ function buildSidebar(item, type) {
     blog:        window.CMS_DATA.Blogs        || window.CMS_DATA.blogs || [],
   };
   const icons = { scholarship:'🎓', job:'💼', internship:'🚀', exam:'📝', book:'📚', blog:'✍️' };
+  const widgets = {
+    job:         { widget:'relatedJobsWidget',         list:'relatedJobsList' },
+    internship:  { widget:'relatedInternshipsWidget',  list:'relatedInternshipsList' },
+    exam:        { widget:'relatedExamsWidget',        list:'relatedExamsList' },
+    scholarship: { widget:'relatedScholarshipsWidget', list:'relatedScholarshipsList' },
+    book:        { widget:'relatedBooksWidget',        list:'relatedBooksList' },
+  };
+  
+  Object.values(widgets).forEach(({ widget, list }) => {
+    const w = document.getElementById(widget);
+    const l = document.getElementById(list);
+    if (w) w.style.display = 'none';
+    if (l) l.innerHTML = '';
+  });
 
-  // Widget: Same type — most relevant
-  const sameTypeWidget = document.getElementById('relatedSameWidget');
-  const sameTypeList   = document.getElementById('relatedSameList');
-  const sameTypeTitle  = document.getElementById('relatedSameTitle');
-  const sameItems = scoreRelated(allData[type]).slice(0, 4);
-  if (sameTypeWidget && sameItems.length) {
-    sameTypeWidget.style.display = 'block';
-    if (sameTypeTitle) sameTypeTitle.textContent = 'More ' + (TYPE_LABELS[type]||type) + 's';
-    if (sameTypeList) sameTypeList.innerHTML = sameItems.map(i => sItem(i, type, icons[type]||'📌')).join('');
+  function renderWidget(targetType, limit) {
+    if (targetType === type || !widgets[targetType]) return;
+    const related = scoreRelated(allData[targetType]).slice(0, limit || 3);
+    if (!related.length) return;
+    const w = document.getElementById(widgets[targetType].widget);
+    const l = document.getElementById(widgets[targetType].list);
+    if (w) w.style.display = 'block';
+    if (l) l.innerHTML = related.map(i => sItem(i, targetType, icons[targetType]||'📌')).join('');
   }
 
-  // Widget: Related Exams (if not already on exam page)
-  if (type !== 'exam') {
-    const rel = scoreRelated(allData.exam).filter(i => i._score > 0).slice(0, 3);
-    if (rel.length) {
-      const w = document.getElementById('relatedExamsWidget');
-      const l = document.getElementById('relatedExamsList');
-      if (w) w.style.display = 'block';
-      if (l) l.innerHTML = rel.map(i => sItem(i, 'exam', '📝')).join('');
-    }
-  }
+  const sidebarPlan = {
+    job:         ['exam', 'book'],
+    scholarship: ['exam', 'book'],
+    book:        ['job', 'internship'],
+    internship:  ['job', 'exam', 'book'],
+    exam:        ['book', 'job', 'scholarship'],
+    blog:        ['job', 'scholarship', 'exam'],
+  };
 
-  // Widget: Related Scholarships
-  if (type !== 'scholarship') {
-    const rel = scoreRelated(allData.scholarship).filter(i => i._score > 0).slice(0, 3);
-    if (rel.length) {
-      const w = document.getElementById('relatedScholarshipsWidget');
-      const l = document.getElementById('relatedScholarshipsList');
-      if (w) w.style.display = 'block';
-      if (l) l.innerHTML = rel.map(i => sItem(i, 'scholarship', '🎓')).join('');
-    }
-  }
-
-  // Widget: Related Books
-  if (type !== 'book') {
-    const rel = scoreRelated(allData.book).slice(0, 3);
-    if (rel.length) {
-      const w = document.getElementById('relatedBooksWidget');
-      const l = document.getElementById('relatedBooksList');
-      if (w) w.style.display = 'block';
-      if (l) l.innerHTML = rel.map(i => sItem(i, 'book', '📚')).join('');
-    }
-  }
+  (sidebarPlan[type] || ['job', 'scholarship', 'exam', 'book']).forEach(targetType => renderWidget(targetType, 3));
 
   // Countdown
   const dl = item.deadline || item.testDate || item.test_date || item.registrationDeadline || item.registration_deadline || '';
