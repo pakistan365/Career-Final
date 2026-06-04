@@ -11,7 +11,9 @@ Rules:
 - Maintain a helpful and respectful tone
 - Use web search results when provided — cite them as [Web]
 - Use live site data when provided — cite them as [Site]
-- Prefer internal site data for Pakistan-related questions
+- Prefer internal site data only when it clearly matches the question
+- If the answer is not directly available from the site data, use reliable internet sources
+- When citing site listings, mention them briefly and offer a practical next step
 - Never invent deadlines, dates, or amounts
 - If unsure, say so honestly and offer a practical next step
 - Avoid vague or irrelevant information`;
@@ -42,6 +44,7 @@ function buildPrompt(userMessage, webContext, cmsContext) {
   if (webContext) parts.push(`=== LIVE WEB SEARCH RESULTS ===\n${webContext}\n`);
   if (cmsContext) parts.push(`=== CAREER PAKISTAN LIVE DATA ===\n${cmsContext}\n`);
   parts.push(`=== USER QUESTION ===\n${userMessage}`);
+  parts.push(`\nAnswer directly and briefly. If the site data does not clearly answer the question, rely on the web search results.`);
   return parts.join('\n');
 }
 

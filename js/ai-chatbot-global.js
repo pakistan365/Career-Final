@@ -177,44 +177,42 @@ body.dark .cp-ai-input{background:#0f172a;border-color:#374151;color:#f3f4f6;}
     ];
 
     const localMatches = getLocalResults(q, sources, 6);
+    const category = getCategoryForQuery(q);
     const el = document.getElementById(tid);
 
-    if (localMatches.length > 0) {
-      if (el) {
-        el.outerHTML = `<div class="cp-ai-msg bot">Here are relevant results from Career Pakistan:<div style="margin-top:.6rem">${renderLocalResultCards(localMatches)}</div></div>`;
+    const ctx = sources.map(source => {
+      const items = (window.CMS_DATA || {})[source.key] || [];
+      return `${source.key}: ${items.slice(0, 3).map(x => x.title || x.name || '').filter(Boolean).join(', ')}`;
+    }).filter(Boolean).join(' | ');
+
+    let apiReply = null;
+    try {
+      const response = await fetch('/api/gemini-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: q, context: ctx })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        apiReply = data.reply || data.message || null;
       }
+    } catch (err) {
+      apiReply = null;
+    }
+
+    if (apiReply) {
+      const extra = category && localMatches.length > 0
+        ? `<div style="margin-top:.6rem;font-size:.9rem;color:var(--text-muted);">I also found these relevant Career Pakistan listings:</div><div style="margin-top:.4rem">${renderLocalResultCards(localMatches)}</div>`
+        : '';
+      const webBadge = apiReply && /web/i.test(apiReply) ? ' <span style="font-size:.62rem;opacity:.45">🌐</span>' : '';
+      if (el) el.outerHTML = `<div class="cp-ai-msg bot">${esc(apiReply)}${webBadge}${extra}</div>`;
     } else {
-      const ctx = sources.map(source => {
-        const items = (window.CMS_DATA || {})[source.key] || [];
-        return `${source.key}: ${items.slice(0, 3).map(x => x.title || x.name || '').filter(Boolean).join(', ')}`;
-      }).filter(Boolean).join(' | ');
-
-      let apiReply = null;
-      try {
-        const response = await fetch('/api/gemini-chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: q, context: ctx })
-        });
-        if (response.ok) {
-          const data = await response.json();
-          apiReply = data.reply || data.message || null;
-        }
-      } catch (err) {
-        apiReply = null;
-      }
-
-      if (apiReply) {
-        const webBadge = apiReply && /web/i.test(apiReply) ? ' <span style="font-size:.62rem;opacity:.45">🌐</span>' : '';
-        if (el) el.outerHTML = `<div class="cp-ai-msg bot">${esc(apiReply)}${webBadge}</div>`;
-      } else {
-        const recommended = renderFallbackRecommendations(q);
-        if (el) {
-          const message = category
-            ? `I couldn't reach the live assistant, but here are relevant ${category.toLowerCase()} recommendations from Career Pakistan:`
-            : 'I could not contact the live assistant. Here are useful recommendations from Career Pakistan:';
-          el.outerHTML = `<div class="cp-ai-msg bot">${esc(message)}<div style="margin-top:.6rem">${renderLocalResultCards(recommended)}</div></div>`;
-        }
+      const recommended = renderFallbackRecommendations(q);
+      if (el) {
+        const message = category
+          ? `I couldn't reach the live assistant, but here are relevant ${category.toLowerCase()} recommendations from Career Pakistan:`
+          : 'I could not contact the live assistant. Here are useful recommendations from Career Pakistan:';
+        el.outerHTML = `<div class="cp-ai-msg bot">${esc(message)}<div style="margin-top:.6rem">${renderLocalResultCards(recommended)}</div></div>`;
       }
     }
 
