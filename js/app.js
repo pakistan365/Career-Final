@@ -1905,42 +1905,45 @@ document.addEventListener('keydown', (event) => {
   setTimeout(hookGrids, 500);
 })();
 
-// ── Animated counter for hero stats ─────────────────────────
-function animateCounter(el, target, suffix) {
-  let start = 0;
-  const duration = 1200;
-  const step = timestamp => {
-    if (!start) start = timestamp;
-    const progress = Math.min((timestamp - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-    el.textContent = Math.floor(eased * target).toLocaleString() + suffix;
-    if (progress < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
+// ── Dynamic CMS counters for hero stats and section badges ───────────────
 
-function initCounters() {
-  const counters = [
-    { id: 'statScholarships', target: 500, suffix: '+' },
-    { id: 'statJobs',         target: 1200, suffix: '+' },
-    { id: 'statExams',        target: 50,  suffix: '+' },
-    { id: 'statBooks',        target: 300, suffix: '+' },
+function updateCMSCounts() {
+  const data = window.CMS_DATA || {};
+  const stats = [
+    { id: 'stat-scholarships', key: 'Scholarships' },
+    { id: 'stat-jobs', key: 'Jobs' },
+    { id: 'stat-exams', key: 'Exams' },
+    { id: 'stat-internships', key: 'Internships' },
+    { id: 'stat-books', key: 'Books' },
+    { id: 'stat-blogs', key: 'Blogs' }
   ];
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
-      const el = e.target;
-      const counter = counters.find(c => c.id === el.id);
-      if (counter) animateCounter(el, counter.target, counter.suffix);
-      io.unobserve(el);
-    });
-  }, { threshold: 0.5 });
-  counters.forEach(c => {
-    const el = document.getElementById(c.id);
-    if (el) io.observe(el);
+  stats.forEach(stat => {
+    const el = document.getElementById(stat.id);
+    if (el) {
+      const count = (data[stat.key] || []).length;
+      el.textContent = count.toLocaleString();
+    }
+  });
+  const counts = {
+    'cnt-scholarships': (data.Scholarships || []).length,
+    'cnt-jobs': (data.Jobs || []).length,
+    'cnt-internships': (data.Internships || []).length,
+    'cnt-exams': (data.Exams || []).length,
+    'cnt-books': (data.Books || []).length,
+    'cnt-blogs': ((data.Blogs || data.blogs || []).filter(b => b.isPublished !== false && b.is_published !== false)).length
+  };
+  Object.entries(counts).forEach(([id, count]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = count;
   });
 }
+function initCounters() {
+  updateCMSCounts();
+  window.addEventListener('cmsDataReady', updateCMSCounts);
+  window.addEventListener('cmsDataUpdated', updateCMSCounts);
+}
 document.addEventListener('DOMContentLoaded', initCounters);
+setTimeout(initCounters, 500);
 
 // ── Navbar scroll shadow ─────────────────────────────────────
 (function initNavbarScrollState() {
