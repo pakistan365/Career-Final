@@ -25,8 +25,6 @@
   <link rel="icon" href="logo.webp" type="image/png" />
   <style>
     .job-layout { display:grid; grid-template-columns: 1fr 300px; gap:1rem; }
-    .sidebar-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem; margin-bottom:1rem; }
-    .quick-links a { display:block; padding:.45rem 0; color:var(--primary); font-weight:600; }
     @media (max-width: 992px){ .job-layout { grid-template-columns: 1fr; } }
   </style>
   <script src="js/analytics-loader.js" defer></script>
@@ -126,17 +124,31 @@
         </div>
       </section>
 
-      <aside>
-        <div class="sidebar-card quick-links">
-          <h3 style="margin-bottom:.5rem">Quick Links</h3>
-          <a href="jobs-private.html">→ Private Jobs</a>
-          <a href="jobs-government.html">→ Government Jobs</a>
-          <a href="internships.html">→ Internships</a>
-          <a href="exams.html">→ Exam Updates</a>
+      <aside style="position:sticky;top:75px;display:flex;flex-direction:column;gap:1.1rem">
+        <div class="sw">
+          <p class="sw-h">⏰ Job Deadline Bar</p>
+          <p class="sw-copy">Open near-deadline job posts first, then filter by government or private sector.</p>
+          <nav>
+            <a href="jobs.html" class="sw-ql"><i class="fa fa-briefcase fa-fw"></i> All Jobs</a>
+            <a href="jobs-government.html" class="sw-ql"><i class="fa fa-building-columns fa-fw"></i> Government Jobs</a>
+            <a href="jobs-private.html" class="sw-ql"><i class="fa fa-building fa-fw"></i> Private / NGO Jobs</a>
+          </nav>
         </div>
-        <div class="sidebar-card">
-          <h3 style="margin-bottom:.5rem">Tips</h3>
-          <p style="margin:0;color:var(--text-secondary)">Keep your CV updated and check deadlines daily before applying.</p>
+        <div class="sw">
+          <p class="sw-h">🧰 Job Tools</p>
+          <p class="sw-copy">Save posts, polish your resume, and apply before the closing date.</p>
+          <nav>
+            <a href="resume-builder.html" class="sw-ql"><i class="fa fa-file-lines fa-fw"></i> Build Your Resume</a>
+            <a href="favorites.html" class="sw-ql"><i class="fa fa-bookmark fa-fw"></i> Saved Jobs</a>
+            <a href="search.html?q=job" class="sw-ql"><i class="fa fa-search fa-fw"></i> Search Jobs</a>
+          </nav>
+        </div>
+        <div class="sw">
+          <p class="sw-h">🌐 Official External Resource</p>
+          <p class="sw-copy">Verify government vacancies through Pakistan’s official National Job Portal.</p>
+          <nav>
+            <a href="https://www.njp.gov.pk/index.php" class="sw-ql" target="_blank" rel="noopener noreferrer"><i class="fa fa-up-right-from-square fa-fw"></i> National Job Portal</a>
+          </nav>
         </div>
       </aside>
     </div>
