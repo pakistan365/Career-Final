@@ -44,6 +44,18 @@
           <h1 class="page-title">🚀 Internships in Pakistan</h1>
           <p class="page-subtitle">Latest verified internship opportunities across Pakistan</p>
         </div>
+        <div class="filter-bar" style="margin-bottom:1rem">
+          <div class="filter-row" style="align-items:center;gap:.75rem;flex-wrap:wrap">
+            <input type="search" id="pageSearchInput" class="filter-select" placeholder="Search internships, company, location..." oninput="applyInternshipFilters()" />
+            <label class="sr-only" for="sortBy">Sort internships</label>
+            <select class="filter-select" id="sortBy" onchange="applyInternshipFilters()">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="deadline">Closing Soon</option>
+            </select>
+            <button class="btn-clear" type="button" onclick="clearInternshipFilters()"><i class="fa fa-times"></i> Clear</button>
+          </div>
+        </div>
         <div id="resultsCount" class="results-count" style="margin-bottom:.75rem;font-size:.84rem;color:var(--text-muted)">Loading…</div>
         <div class="cards-grid" id="resultsGrid">
           <div class="skeleton-card"></div>
@@ -83,7 +95,66 @@
       </aside>
     </div>
   </div>
-</main><script>function _renderPage(){const m={'scholarships':'Scholarships','scholarships-national':'Scholarships','scholarships-international':'Scholarships','internships':'Internships','exams':'Exams','exams-css':'Exams','exams-mdcat':'Exams','exams-ppsc':'Exams','jobs-government':'Jobs','jobs-private':'Jobs'};const key='internships';let items=(window.CMS_DATA[m[key]]||[]).slice();if(key==='scholarships-national')items=items.filter(i=>scholarshipMatchesCountry(i,'Pakistan'));if(key==='scholarships-international')items=items.filter(i=>scholarshipMatchesCountry(i,'International'));if(key==='exams-css')items=items.filter(i=>/css/i.test((i.exam_type||'')+' '+(i.tags||'')));if(key==='exams-mdcat')items=items.filter(i=>/mdcat/i.test((i.exam_type||'')+' '+(i.tags||'')));if(key==='exams-ppsc')items=items.filter(i=>/ppsc/i.test((i.exam_type||'')+' '+(i.tags||'')));if(key==='jobs-government')items=items.filter(i=>isGovernmentType(i.type)||/government/i.test(i.category||''));if(key==='jobs-private')items=items.filter(i=>!isGovernmentType(i.type));items=sortItems(items,'newest');const resultsCountEl=document.getElementById('resultsCount');if(resultsCountEl)resultsCountEl.textContent=items.length+' results';if(typeof renderCards==='function'){renderCards(items,'resultsGrid',m[key]==='Jobs'?'job':m[key]==='Scholarships'?'scholarship':m[key]==='Internships'?'internship':'exam');}else{const resultsGridEl=document.getElementById('resultsGrid');if(resultsGridEl)resultsGridEl.innerHTML=items.map(i=>m[key]==='Jobs'?cardJob(i):m[key]==='Scholarships'?cardScholarship(i):m[key]==='Internships'?cardInternship(i):cardExam(i)).join('');}}document.addEventListener('DOMContentLoaded',()=>onCMSReady(()=>{const run=()=>{if(typeof window.sortItems!=='function'||typeof window.renderCards!=='function'){setTimeout(run,120);return;} _renderPage();};run();}));</script>
+</main><script>
+  let internshipPageItems = [];
+
+  function _renderPage() {
+    const m = {
+      'scholarships': 'Scholarships',
+      'scholarships-national': 'Scholarships',
+      'scholarships-international': 'Scholarships',
+      'internships': 'Internships',
+      'exams': 'Exams',
+      'exams-css': 'Exams',
+      'exams-mdcat': 'Exams',
+      'exams-ppsc': 'Exams',
+      'jobs-government': 'Jobs',
+      'jobs-private': 'Jobs'
+    };
+    const key = 'internships';
+    internshipPageItems = (window.CMS_DATA[m[key]] || []).slice();
+    applyInternshipFilters();
+  }
+
+  function applyInternshipFilters() {
+    const query = document.getElementById('pageSearchInput').value;
+    const sort = document.getElementById('sortBy').value || 'newest';
+
+    let filtered = internshipPageItems.slice();
+    if (query) filtered = filtered.filter(item => matchesTextSearch(item, query));
+
+    filtered = sortItems(filtered, sort);
+
+    const resultsCountEl = document.getElementById('resultsCount');
+    if (resultsCountEl) resultsCountEl.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`;
+
+    if (typeof renderCards === 'function') {
+      renderCards(filtered, 'resultsGrid', 'internship');
+    } else {
+      const resultsGridEl = document.getElementById('resultsGrid');
+      if (resultsGridEl) resultsGridEl.innerHTML = filtered.map(item => cardInternship(item)).join('');
+    }
+
+    document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
+  }
+
+  function clearInternshipFilters() {
+    document.getElementById('pageSearchInput').value = '';
+    document.getElementById('sortBy').value = 'newest';
+    applyInternshipFilters();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => onCMSReady(() => {
+    const run = () => {
+      if (typeof window.sortItems !== 'function' || typeof window.renderCards !== 'function') {
+        setTimeout(run, 120);
+        return;
+      }
+      _renderPage();
+    };
+    run();
+  }));
+</script>
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
@@ -117,9 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof initDarkMode==='function') initDarkMode();
   if(typeof updateFavCount==='function') updateFavCount();
   if(typeof initMenu==='function') initMenu();
-  onCMSReady(() => {
-    _renderPage();
-  });
 });
 </script>
 </body>

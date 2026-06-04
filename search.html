@@ -152,7 +152,7 @@
   <script>
     let allResults = [];
     const params = new URLSearchParams(window.location.search);
-    const query = params.get('q') || '';
+    const query = (params.get('q') || '').trim();
 
     document.addEventListener('DOMContentLoaded', () => {
       updateFavCount();
@@ -178,7 +178,12 @@
         const exams = window.CMS_DATA['Exams'] || [];
         const books = window.CMS_DATA['Books'] || [];
         const q = query.toLowerCase();
-        const match = (obj) => Object.values(obj).some(v => String(v).toLowerCase().includes(q));
+        const match = (obj) => {
+          if (typeof window.matchesTextSearch === 'function') {
+            return matchesTextSearch(obj, q);
+          }
+          return Object.values(obj).some(v => String(v).toLowerCase().includes(q));
+        };
         allResults = [
           ...scholarships.filter(match).map(i => ({ ...i, _type: 'scholarship' })),
           ...jobs.filter(match).map(i => ({ ...i, _type: 'job' })),
