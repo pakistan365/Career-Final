@@ -57,23 +57,27 @@
       </div>
       <aside style="position:sticky;top:75px;display:flex;flex-direction:column;gap:1.1rem">
         <div class="sw">
-          <p class="sw-h">⏰ Closing Soon</p>
-          <div id="pgSbDeadlines"><div class="skeleton-card" style="height:48px;margin-bottom:.35rem"></div><div class="skeleton-card" style="height:48px"></div></div>
-        </div>
-        <div class="sw">
-          <p class="sw-h">⭐ Featured</p>
-          <div id="pgSbFeatured"><div class="skeleton-card" style="height:48px"></div></div>
-        </div>
-        <div class="sw">
-          <p class="sw-h">🔗 Quick Links</p>
+          <p class="sw-h">⏰ CSS Focus Bar</p>
+          <p class="sw-copy">Keep CSS notices and preparation books in one quick sidebar.</p>
           <nav>
-            <a href="scholarships.html" class="sw-ql"><i class="fa fa-graduation-cap fa-fw"></i> Scholarships</a>
-            <a href="jobs.html" class="sw-ql"><i class="fa fa-briefcase fa-fw"></i> Jobs</a>
-            <a href="internships.html" class="sw-ql"><i class="fa fa-rocket fa-fw"></i> Internships</a>
-            <a href="exams.html" class="sw-ql"><i class="fa fa-file-alt fa-fw"></i> Exams</a>
-            <a href="books.html" class="sw-ql"><i class="fa fa-book fa-fw"></i> Books</a>
-            <a href="blog.html" class="sw-ql"><i class="fa fa-pen fa-fw"></i> Blog</a>
-            <a href="search.html" class="sw-ql"><i class="fa fa-search fa-fw"></i> Search All</a>
+            <a href="exams-css.html" class="sw-ql"><i class="fa fa-scale-balanced fa-fw"></i> CSS Updates</a>
+            <a href="books.html" class="sw-ql"><i class="fa fa-book fa-fw"></i> CSS Books</a>
+          </nav>
+        </div>
+        <div class="sw">
+          <p class="sw-h">🧰 Prep Shortcuts</p>
+          <p class="sw-copy">Use internal search and saved posts for syllabus, MPT, and written-exam updates.</p>
+          <nav>
+            <a href="exams.html" class="sw-ql"><i class="fa fa-file-alt fa-fw"></i> All Exams</a>
+            <a href="favorites.html" class="sw-ql"><i class="fa fa-bookmark fa-fw"></i> Saved CSS Posts</a>
+            <a href="search.html?q=CSS" class="sw-ql"><i class="fa fa-search fa-fw"></i> Search CSS</a>
+          </nav>
+        </div>
+        <div class="sw">
+          <p class="sw-h">🌐 Official External Resource</p>
+          <p class="sw-copy">Verify CSS notices, syllabi, and admissions from FPSC.</p>
+          <nav>
+            <a href="https://fpsc.gov.pk/" class="sw-ql" target="_blank" rel="noopener noreferrer"><i class="fa fa-up-right-from-square fa-fw"></i> FPSC Official Website</a>
           </nav>
         </div>
       </aside>
@@ -115,50 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if(typeof initMenu==='function') initMenu();
   onCMSReady(() => {
     _renderPage();
-    _fillSubSidebar();
   });
 });
-
-function _fillSubSidebar() {
-  const all = [
-    ...(window.CMS_DATA.Scholarships||[]).map(i=>({...i,_t:'scholarship'})),
-    ...(window.CMS_DATA.Jobs||[]).map(i=>({...i,_t:'job'})),
-    ...(window.CMS_DATA.Internships||[]).map(i=>({...i,_t:'internship'})),
-    ...(window.CMS_DATA.Exams||[]).map(i=>({...i,_t:'exam'})),
-  ];
-  const icons = {scholarship:'🎓',job:'💼',internship:'🚀',exam:'📝'};
-
-  const now = new Date();
-  const soon = all
-    .map(i => {
-      const raw = i.deadline||i.registrationDeadline||i.registration_deadline||i.testDate||i.test_date||'';
-      return {...i, _dl: raw ? new Date(raw) : null, _dlRaw: raw};
-    })
-    .filter(i => i._dl && i._dl > now)
-    .sort((a,b) => a._dl - b._dl)
-    .slice(0,6);
-
-  const dlEl = document.getElementById('pgSbDeadlines');
-  if (dlEl) dlEl.innerHTML = soon.length ? soon.map(i=>`
-    <a class="sw-item" href="opportunity.html?type=${i._t}&id=${encodeURIComponent(i.id)}">
-      <span class="sw-icon">${icons[i._t]||'📌'}</span>
-      <span class="sw-body">
-        <span class="sw-title">${typeof escapeHtml==='function'?escapeHtml(i.title||''):i.title||''}</span>
-        <span class="sw-meta urgent"><i class="fa fa-clock fa-xs"></i> ${typeof formatDate==='function'?formatDate(i._dlRaw):i._dlRaw}</span>
-      </span>
-    </a>`).join('') : '<p class="sw-empty">No upcoming deadlines.</p>';
-
-  const featured = all.filter(i=>i.isFeatured===true||i.is_featured===true).slice(0,5);
-  const ftEl = document.getElementById('pgSbFeatured');
-  if (ftEl) ftEl.innerHTML = featured.length ? featured.map(i=>`
-    <a class="sw-item" href="opportunity.html?type=${i._t}&id=${encodeURIComponent(i.id)}">
-      <span class="sw-icon">⭐</span>
-      <span class="sw-body">
-        <span class="sw-title">${typeof escapeHtml==='function'?escapeHtml(i.title||''):i.title||''}</span>
-        <span class="sw-meta">${i._t}</span>
-      </span>
-    </a>`).join('') : '<p class="sw-empty">No featured items yet.</p>';
-}
 </script>
 </body>
 </html>
