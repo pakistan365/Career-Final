@@ -12,10 +12,9 @@
 //
 // AI BOT TOGGLE (future):
 //   When the sitewide AI bot toggle is added, the chatbot-loader.js
-//   will call POST /api/chat (gemini-chatbot.js). This file does NOT
-//   need changes for that feature — bot state is managed client-side
-//   via localStorage key 'cpk_bot_enabled' and toggled globally on
-//   every page via js/chatbot-loader.js. No routing changes needed here.
+//   will call POST /api/chat. Bot state is managed client-side via
+//   localStorage key 'cpk_bot_enabled' and toggled globally on every
+//   page via js/chatbot-loader.js. No routing changes are needed here.
 // ============================================================
 
 'use strict';
