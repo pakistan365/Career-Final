@@ -1596,6 +1596,78 @@ function toggleSearch() {
   document.getElementById('navSearchInput')?.focus();
 }
 
+// Header instant suggestions: search CMS_DATA across sheets and show simple dropdown
+function headerInstantSearch(q) {
+  const container = document.getElementById('navSearch');
+  if (!container) return;
+  const term = String(q || '').trim().toLowerCase();
+  let dropdown = document.getElementById('navSearchDropdown');
+  if (!dropdown) {
+    dropdown = document.createElement('div');
+    dropdown.id = 'navSearchDropdown';
+    dropdown.style.position = 'absolute';
+    dropdown.style.left = '0';
+    dropdown.style.right = '0';
+    dropdown.style.background = 'var(--bg-card,#fff)';
+    dropdown.style.border = '1px solid var(--border,#e6eef6)';
+    dropdown.style.zIndex = '99999';
+    dropdown.style.maxHeight = '320px';
+    dropdown.style.overflow = 'auto';
+    dropdown.style.boxShadow = '0 8px 32px rgba(0,0,0,.12)';
+    dropdown.style.borderRadius = '8px';
+    const inner = container.querySelector('.nav-container');
+    if (inner) inner.appendChild(dropdown);
+    else container.appendChild(dropdown);
+  }
+
+  if (!term) { dropdown.style.display = 'none'; dropdown.innerHTML = ''; return; }
+
+  const D = window.CMS_DATA || {};
+  const sources = ['Scholarships','Jobs','Internships','Exams','Books','Blogs'];
+  const results = [];
+  sources.forEach((s) => {
+    const rows = D[s] || [];
+    for (let i=0;i<rows.length;i++) {
+      const item = rows[i];
+      try {
+        if (matchesTextSearch(item, term)) {
+          results.push({type: s.toLowerCase().replace(/s$/,''), item});
+        }
+      } catch (e) { /* ignore */ }
+      if (results.length >= 8) break;
+    }
+    if (results.length >= 8) return;
+  });
+
+  if (!results.length) {
+    dropdown.style.display = 'none'; dropdown.innerHTML = ''; return;
+  }
+
+  dropdown.style.display = 'block';
+  dropdown.innerHTML = results.map(r => {
+    const t = (r.item.title || r.item.name || '').replace(/</g,'&lt;');
+    const href = r.type === 'book' ? `opportunity.html?type=book&id=${encodeURIComponent(r.item.id)}` : `opportunity.html?type=${encodeURIComponent(r.type)}&id=${encodeURIComponent(r.item.id)}`;
+    return `<a href="${href}" class="nav-search-sugg" style="display:block;padding:.6rem .8rem;border-bottom:1px solid rgba(0,0,0,.04);color:var(--text-main);text-decoration:none">${t || '(no title)'} <small style="opacity:.6;margin-left:.5rem;font-size:.78rem">${r.type}</small></a>`;
+  }).join('');
+}
+
+// Attach input listener for nav search when DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  const navInput = document.getElementById('navSearchInput');
+  if (!navInput) return;
+  let tId = null;
+  navInput.addEventListener('input', (e) => {
+    window.clearTimeout(tId);
+    tId = setTimeout(() => headerInstantSearch(e.target.value), 180);
+  });
+  // hide suggestions when clicking outside
+  document.addEventListener('click', (ev) => {
+    const dd = document.getElementById('navSearchDropdown');
+    if (!dd) return;
+    if (!ev.target.closest('#navSearch')) dd.style.display = 'none';
+  });
+});
+
 // ── Dark mode ─────────────────────────────────────────────────
 function syncThemeButton() {
   const btn = document.getElementById('themeBtn');
@@ -1772,30 +1844,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const input = document.getElementById('searchQueryInput');
       if (input) input.value = q;
       runSearch(q);
-    }
-
-    // Header search input: allow Enter to navigate to search page or run search inline
-    try {
-      const navInput = document.getElementById('navSearchInput');
-      if (navInput && !navInput._ch_header_search_bound) {
-        navInput._ch_header_search_bound = true;
-        navInput.addEventListener('keydown', (e) => {
-          if (e.key !== 'Enter') return;
-          const qv = (navInput.value || '').trim();
-          if (!qv) return;
-          const current = location.pathname.split('/').pop() || 'index.html';
-          const target = 'search.html?q=' + encodeURIComponent(qv);
-          if (current === 'search.html') {
-            const si = document.getElementById('searchInput');
-            if (si) si.value = qv;
-            if (typeof runSearch === 'function') runSearch();
-            return;
-          }
-          location.href = target;
-        });
-      }
-    } catch (e) {
-      // noop
     }
   });
 });
