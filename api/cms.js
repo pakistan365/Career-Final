@@ -223,8 +223,8 @@ async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   // ✅ Cache fix — same policy as sheets.js
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+  
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET')    return res.status(405).json({ error: 'Method not allowed' });
 
