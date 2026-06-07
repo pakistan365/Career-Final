@@ -454,7 +454,7 @@ body.dark .skeleton-card {
 /* ── 2-column compact grid on inner listing pages (mobile) ── */
 @media (max-width: 768px) {
   body.inner-mobile-grid .cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px;
     overflow-x: hidden;
   }
@@ -1626,4 +1626,25 @@ body.dark .empty-state {
   body.home-page .cards-grid.home-card-slider > .card {
     transition: none !important;
   }
+}
+
+@media (max-width: 400px) {
+  body.home-page .cards-grid.home-card-slider {
+    --gap: 10px;
+    --card-w: max(130px, min(200px, calc((100% - 2 * 12px - var(--gap)) / 2)));
+    padding-inline: 12px;
+    scroll-padding-inline-start: 12px;
+    scroll-padding-inline-end: 12px;
+  }
+}
+
+/* ── Hamburger always accessible ── */
+@media (max-width: 899px) {
+  .hamburger {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  .nav-actions { display: flex !important; align-items: center; gap: 6px; }
 }
