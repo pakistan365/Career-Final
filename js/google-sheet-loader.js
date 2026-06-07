@@ -4,6 +4,9 @@
 // isActive on notifications, _fireCMSReady()
 // ============================================================
 const SHEETS_BASE_URL='/api/sheets';
+const CMS_API_URL='/api/cms';
+const CMS_CACHE_KEY='careerpk.cms.v4';
+const CMS_CACHE_MAX_AGE=6*60*60*1000; // Instant repeat visits; network refresh still runs.
 const DIRECT_SHEET_URLS={
   Scholarships:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdaG_r04rwKR63qkpha0v-REFHkI2M7aXIGNQZf7zmduv8tvV1k4TRBlafEIKKgI8QbXuL6r3rTuMo/pub?output=csv',
   Jobs:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRfOHaqq2H2iBXWn90i11S0bfbPUa--m4Hrkvh34TC11KDTyZymdcTCryAnckRZ8MjeAUb7Bh1-6i4s/pub?output=csv',
@@ -200,7 +203,7 @@ function _dedupe(arr){
 }
 
 async function _readCsv(url,cfg){
-  const res=await fetch(url,{cache:'default'});
+  const res=await fetch(url,{cache:'force-cache',credentials:'same-origin'});
   if(!res.ok)throw new Error(`${cfg.name}: HTTP ${res.status}`);
   const text=await res.text();
   const trimmed=text.trim();
@@ -211,6 +214,89 @@ async function _readCsv(url,cfg){
   }
   if(trimmed.startsWith('<!')||trimmed.includes('Host not in allowlist'))throw new Error(`${cfg.name}: non-CSV response`);
   return text;
+}
+
+function _aliasCmsItem(item){
+  const o=_normalize(item||{});
+  o.applyLink=o.applyLink||o.apply_link||o.registration_link||o.download_link||'';
+  o.apply_link=o.apply_link||o.applyLink;
+  o.pdfLink=o.pdfLink||o.pdf_link||'';
+  o.pdf_link=o.pdf_link||o.pdfLink;
+  o.imageUrl=o.imageUrl||o.image_url||'';
+  o.image_url=o.image_url||o.imageUrl;
+  o.shortDescription=o.shortDescription||o.short_description||o.summary||'';
+  o.short_description=o.short_description||o.shortDescription;
+  o.postedDate=o.postedDate||o.posted_date||o.date||'';
+  o.posted_date=o.posted_date||o.postedDate;
+  o.isFeatured=Boolean(o.isFeatured||o.is_featured);
+  o.is_featured=Boolean(o.is_featured||o.isFeatured);
+  o.isFree=Boolean(o.isFree||o.is_free);
+  o.is_free=Boolean(o.is_free||o.isFree);
+  o.examType=o.examType||o.exam_type||'';
+  o.exam_type=o.exam_type||o.examType;
+  o.registrationDeadline=o.registrationDeadline||o.registration_deadline||o.deadline||'';
+  o.registration_deadline=o.registration_deadline||o.registrationDeadline;
+  o.testDate=o.testDate||o.test_date||'';
+  o.test_date=o.test_date||o.testDate;
+  o.conductingBody=o.conductingBody||o.conducting_body||'';
+  o.conducting_body=o.conducting_body||o.conductingBody;
+  o.educationLevel=o.educationLevel||o.education_level||'';
+  o.education_level=o.education_level||o.educationLevel;
+  o.downloadLink=o.downloadLink||o.download_link||'';
+  o.download_link=o.download_link||o.downloadLink;
+  o.readTime=o.readTime||o.read_time||'';
+  o.read_time=o.read_time||o.readTime;
+  if(o.is_active!==undefined)o.isActive=Boolean(o.isActive||o.is_active);
+  if(o.is_published!==undefined)o.isPublished=Boolean(o.isPublished||o.is_published);
+  if(o.isPublished!==undefined)o.is_published=Boolean(o.is_published||o.isPublished);
+  if(!o.pdfLinks.length&&o.pdfLink)o.pdfLinks=[o.pdfLink];
+  if(!o.imageLinks.length&&o.imageUrl)o.imageLinks=[o.imageUrl];
+  return o;
+}
+
+function _setSheetData(name,data){
+  const rows=_dedupe((Array.isArray(data)?data:[]).map(_aliasCmsItem));
+  window.CMS_DATA[name]=rows;
+  window.CMS_DATA[name.toLowerCase()]=rows;
+  return rows;
+}
+
+function _snapshot(){
+  const snap={};
+  SHEETS_CONFIG.forEach(cfg=>{snap[cfg.name]=window.CMS_DATA[cfg.name]||[];});
+  return snap;
+}
+
+function _changedTabs(before){
+  return SHEETS_CONFIG.map(cfg=>cfg.name).filter(name=>JSON.stringify(before[name]||[])!==JSON.stringify(window.CMS_DATA[name]||[]));
+}
+
+function _readLocalCache(){
+  try{
+    const raw=localStorage.getItem(CMS_CACHE_KEY);
+    if(!raw)return null;
+    const cached=JSON.parse(raw);
+    if(!cached||!cached.tabs||Date.now()-(cached.savedAt||0)>CMS_CACHE_MAX_AGE)return null;
+    return cached.tabs;
+  }catch(e){return null;}
+}
+
+function _writeLocalCache(){
+  try{localStorage.setItem(CMS_CACHE_KEY,JSON.stringify({savedAt:Date.now(),tabs:_snapshot()}));}
+  catch(e){/* storage quota/private mode - ignore */}
+}
+
+function _applyTabs(tabs){
+  SHEETS_CONFIG.forEach(cfg=>_setSheetData(cfg.name,tabs&&tabs[cfg.name]));
+}
+
+async function _loadFromCmsApi(){
+  const res=await fetch(CMS_API_URL,{cache:'force-cache',credentials:'same-origin'});
+  if(!res.ok)throw new Error(`CMS API HTTP ${res.status}`);
+  const payload=await res.json();
+  if(!payload||!payload.tabs)throw new Error('CMS API returned no tabs');
+  _applyTabs(payload.tabs);
+  _writeLocalCache();
 }
 
 async function loadOneSheet(cfg){
@@ -227,20 +313,50 @@ async function loadOneSheet(cfg){
   }
 }
 
-async function loadAllSheets(){
-  if(window.CMS_LOADING.global)return window.CMS_DATA;
-  window.CMS_LOADING.global=true;
+async function _loadFromCsvFallback(){
   const results=await Promise.allSettled(SHEETS_CONFIG.map(loadOneSheet));
   results.forEach((r,i)=>{
     const cfg=SHEETS_CONFIG[i];
     const data=r.status==='fulfilled'?r.value:[];
     if(r.status==='rejected')console.warn(`[CMS] Failed ${cfg.name}:`,r.reason?.message||r.reason);
-    window.CMS_DATA[cfg.name]=data;
-    window.CMS_DATA[cfg.name.toLowerCase()]=data;
+    _setSheetData(cfg.name,data);
   });
-  window.CMS_LOADING.global=false;
-  if(typeof window._fireCMSReady==='function')window._fireCMSReady();
-  return window.CMS_DATA;
+  _writeLocalCache();
+}
+
+async function loadAllSheets(){
+  if(window.CMS_LOADING.global)return window.CMS_LOADING.globalPromise||Promise.resolve(window.CMS_DATA);
+  window.CMS_LOADING.global=true;
+
+  const cachedTabs=_readLocalCache();
+  if(cachedTabs){
+    _applyTabs(cachedTabs);
+    if(typeof window._fireCMSReady==='function')window._fireCMSReady();
+  }
+
+  const before=_snapshot();
+  window.CMS_LOADING.globalPromise=(async()=>{
+    try{
+      try{await _loadFromCmsApi();}
+      catch(apiErr){
+        console.warn('[CMS] Aggregated API failed; falling back to per-sheet CSV.',apiErr?.message||apiErr);
+        await _loadFromCsvFallback();
+      }
+      if(typeof window._fireCMSReady==='function')window._fireCMSReady();
+      const changed=_changedTabs(before);
+      if(cachedTabs&&changed.length&&typeof window._fireCMSRefresh==='function')window._fireCMSRefresh(changed);
+      return window.CMS_DATA;
+    }catch(err){
+      console.warn('[CMS] Load failed:',err?.message||err);
+      document.dispatchEvent(new CustomEvent('cmsLoadFailed',{detail:err}));
+      if(typeof window._fireCMSReady==='function')window._fireCMSReady();
+      return window.CMS_DATA;
+    }finally{
+      window.CMS_LOADING.global=false;
+      window.CMS_LOADING.globalPromise=null;
+    }
+  })();
+  return window.CMS_LOADING.globalPromise;
 }
 
 window.loadAllSheets=loadAllSheets;
