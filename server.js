@@ -93,7 +93,17 @@ function safeResolve(rootDir, unsafePath) {
 function streamFile(filePath, res) {
   const ext = path.extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-
+  const imageCacheExts = new Set(['.webp', '.png', '.jpg', '.jpeg', '.svg', '.ico']);
+  if (imageCacheExts.has(ext)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (ext === '.css' || ext === '.js') {
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+  } else if (ext === '.json') {
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+  } else if (ext === '.html') {
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  }
+  
   const stream = fs.createReadStream(filePath);
   stream.on('open', () => {
     res.statusCode = 200;
