@@ -33,11 +33,11 @@
   const FALLBACK_SRC     = 'banner.webp';
   const TRANSPARENT_GIF  = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-  // rootMargin: start loading 200px before the image enters the viewport
+  // rootMargin: start loading 600px before the image enters the viewport
   // so cards feel instant on slow connections.
   const IO_OPTIONS = {
     root:       null,
-    rootMargin: '200px 0px',
+    rootMargin: '600px 0px',
     threshold:  0,
   };
 
@@ -235,7 +235,7 @@
     document.querySelectorAll('img[data-src]').forEach(function (img) {
       if (img._lazyLoaded) return;
       var rect = img.getBoundingClientRect();
-      if (rect.top < vh * 1.5) {
+      if (rect.top < vh * 2) {
         _loadImage(img);
       }
     });
