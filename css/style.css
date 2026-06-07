@@ -1406,3 +1406,10 @@ body.dark .stats-ribbon { background: #040e0d; }
   .hamburger { display: none !important; }
   .nav-links { position: static !important; display: flex !important; height: auto !important; left: auto !important; box-shadow: none !important; }
 }
+
+@media (max-width: 768px) {
+  body.inner-mobile-grid .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+}
