@@ -532,7 +532,7 @@ body.home-page .cards-grid.home-card-slider .card-img {
 body.home-page .cards-grid.home-card-slider {
   --gap: 16px;
   --card-h: 360px;
-  --card-w: max(160px, min(280px, calc((100% - var(--gap)) / 2)));
+  --card-w: max(140px, min(260px, calc((100% - 2 * 16px - var(--gap)) / 2)));
 
   display: flex !important;
   flex-wrap: nowrap;
@@ -582,6 +582,16 @@ body.home-page .cards-grid.home-card-slider > .skeleton-card {
     --gap: 16px;
     --card-h: 440px;
     --card-w: max(220px, min(320px, calc((100% - 2 * var(--gap)) / 3)));
+  }
+}
+
+@media (max-width: 400px) {
+  body.home-page .cards-grid.home-card-slider {
+    --gap: 10px;
+    --card-w: max(130px, min(200px, calc((100% - 2 * 12px - var(--gap)) / 2)));
+    padding-inline: 12px;
+    scroll-padding-inline-start: 12px;
+    scroll-padding-inline-end: 12px;
   }
 }
 
