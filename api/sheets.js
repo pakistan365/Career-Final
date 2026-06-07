@@ -45,8 +45,8 @@ function setCors(res) {
 async function handler(req, res) {
   setCors(res);
 
-  // Vercel edge cache: 30 min per sheet, stale-while-revalidate for zero downtime
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+  // Vercel edge cache: short TTL keeps new sheet rows visible quickly; stale-while-revalidate keeps loads fast.
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
