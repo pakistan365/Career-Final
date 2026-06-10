@@ -543,7 +543,6 @@ function cardUniversityAdmission(u) {
       </div>
     </div>
     <div class="card-footer">
-      ${u.meritListUrl ? `<a class="btn btn-ghost" href="${escapeHtml(u.meritListUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:.8rem;padding:.4rem .8rem"><i class="fa fa-list-ol fa-xs"></i> Merit List</a>` : ''}
       <a class="btn btn-secondary" href="${detailUrl}" onclick="event.stopPropagation()" style="font-size:.82rem;padding:.45rem .9rem"><i class="fa fa-circle-info fa-xs"></i> Details</a>
       <a class="btn btn-primary" href="${applyUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" style="font-size:.82rem;padding:.45rem .9rem"><i class="fa fa-arrow-up-right-from-square fa-xs"></i> Apply</a>
     </div>
