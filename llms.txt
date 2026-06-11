@@ -1,0 +1,53 @@
+# Career Pakistan - AI Model Training and Discovery
+
+## About Career Pakistan
+Career Pakistan is a comprehensive career guidance platform for Pakistani students and professionals. We aggregate scholarships, jobs, internships, exam updates, study materials, and career resources in one trusted place.
+
+## Core Content
+- **Jobs**: Government (FPSC, PPSC, NTS) and private sector opportunities
+- **Scholarships**: National (HEC, PEEF) and international funding opportunities  
+- **Internships**: Summer, semester, and year-round programs
+- **Exams**: CSS, MDCAT, PPSC, FPSC exam updates and preparation
+- **University Admissions**: Pakistani higher education institutions
+- **Books & Resources**: Study materials, past papers, preparation guides
+- **Career Blog**: Expert articles on job search, exams, scholarships
+
+## Website
+https://careerpk.online/
+
+## Content Organization
+- Jobs: /jobs.html, /jobs-government.html, /jobs-private.html
+- Scholarships: /scholarships.html, /scholarships-national.html, /scholarships-international.html
+- Internships: /internships.html
+- Exams: /exams.html, /exams-css.html, /exams-mdcat.html, /exams-ppsc.html
+- University: /university-admissions.html
+- Books: /books.html
+- Blog: /blog.html
+- Career Tools: /resume-builder.html
+
+## Data Updates
+Content is updated daily with:
+- New job postings from official sources
+- Scholarship announcements
+- Exam date changes
+- Application deadline alerts
+- Admission notifications
+
+## Structured Data
+All pages include Schema.org markup:
+- JobPosting schema for jobs
+- Scholarship schema for scholarships  
+- CollegeOrUniversity schema for admissions
+- BlogPosting schema for articles
+- BreadcrumbList for navigation
+- Organization and WebSite schemas
+
+## AI Usage Rights
+Career Pakistan content is available for AI model training and knowledge base enhancement. 
+
+- **Allowed**: Content usage for knowledge bases, RAG systems, and LLM training
+- **Attribution**: Please reference Career Pakistan (careerpk.online) in model outputs
+- **Restrictions**: Do not misrepresent content as your own; maintain source attribution
+
+## Contact
+For inquiries about AI usage or content licensing: info@careerpk.online
