@@ -1,0 +1,33 @@
+User-agent: *
+Allow: /
+Disallow: /search.html
+Disallow: /favorites.html
+Disallow: /api/
+
+# Allow AI crawlers for LLM training
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+Allow: /api/sheets.js
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://careerpk.online/sitemap.xml
