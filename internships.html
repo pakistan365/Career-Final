@@ -6,14 +6,14 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5468385790252026" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="index, follow, max-image-preview:large"/>
-  <title>Contact Career Pakistan — Get in Touch</title>
-  <meta name="description" content="Contact Career Pakistan with feedback, inquiries or partnership proposals. We respond to all genuine inquiries."/>
-  <meta name="keywords" content="contact, feedback, inquiry, support, partnership, career pakistan contact, get in touch"/>
-  <link rel="canonical" href="https://careerpk.online/contact.html"/>
+  <title>Internship Opportunities in Pakistan 2026 — Remote & On-site</title>
+  <meta name="description" content="Discover summer, semester and year-round internships. Remote, hybrid and office positions across sectors. Build real-world experience."/>
+  <meta name="keywords" content="internships pakistan, summer internship, paid internship, remote internship, career development, work experience"/>
+  <link rel="canonical" href="https://careerpk.online/internships.html"/>
   <meta property="og:type" content="website"/>
-  <meta property="og:url" content="https://careerpk.online/contact.html"/>
-  <meta property="og:title" content="Contact Career Pakistan"/>
-  <meta property="og:description" content="Reach out to Career Pakistan with your inquiries."/>
+  <meta property="og:url" content="https://careerpk.online/internships.html"/>
+  <meta property="og:title" content="Internship Opportunities in Pakistan 2026"/>
+  <meta property="og:description" content="Find internships across all sectors in Pakistan."/>
   <meta property="og:image" content="https://careerpk.online/banner.webp"/>
   <meta name="twitter:card" content="summary_large_image"/>
   <link rel="stylesheet" href="css/style.css"/>
@@ -21,16 +21,18 @@
   <link rel="stylesheet" href="css/perf-improvements.css"/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <link rel="icon" href="logo.webp" type="image/webp" />
-  <link rel="apple-touch-icon" href="logo.webp" />
-
   <link rel="manifest" href="manifest.json"/>
   <script src="js/cms-bootstrap.js"></script>
   <script src="js/analytics-loader.js" defer></script>
   <script src="js/seo.js" defer></script>
+
+  <link rel="stylesheet" href="css/premium-upgrades.css"/>
+  <link rel="icon" href="logo.webp" type="image/webp" />
+  <link rel="apple-touch-icon" href="logo.webp" />
+
 </head>
-<body>
-<nav class="navbar" id="navbar">
+<body class="inner-mobile-grid">
+  <nav class="navbar" id="navbar">
   <div class="nav-container">
     <a href="/" class="nav-logo">
       <picture>
@@ -56,7 +58,7 @@
           <li><a href="jobs-private.html">Private / NGO</a></li>
         </ul>
       </li>
-      <li><a href="internships.html">Internships</a></li>
+      <li><a href="internships.html" class="active">Internships</a></li>
       <li class="has-dropdown">
         <a href="exams.html">Exams <i class="fa fa-chevron-down fa-xs"></i></a>
         <ul class="dropdown">
@@ -96,18 +98,125 @@
   </div>
 </nav>
 
+<main class="section">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 290px;gap:2rem;align-items:start">
+      <div>
+        <div class="page-header" style="margin-bottom:1.5rem">
+          <h1 class="page-title">🚀 Internships in Pakistan</h1>
+          <p class="page-subtitle">Latest verified internship opportunities across Pakistan</p>
+        </div>
+        <div class="filter-bar" style="margin-bottom:1rem">
+          <div class="filter-row" style="align-items:center;gap:.75rem;flex-wrap:wrap">
+            <input type="search" id="pageSearchInput" class="filter-select" placeholder="Search internships, company, location..." oninput="applyInternshipFilters()" />
+            <label class="sr-only" for="sortBy">Sort internships</label>
+            <select class="filter-select" id="sortBy" onchange="applyInternshipFilters()">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="deadline">Closing Soon</option>
+            </select>
+            <button class="btn-clear" type="button" onclick="clearInternshipFilters()"><i class="fa fa-times"></i> Clear</button>
+          </div>
+        </div>
+        <div id="resultsCount" class="results-count" style="margin-bottom:.75rem;font-size:.84rem;color:var(--text-muted)">Loading…</div>
+        <div class="cards-grid" id="resultsGrid">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+        <div id="emptyState" style="display:none;text-align:center;padding:3rem 1rem">
+          <i class="fa fa-inbox" style="font-size:2rem;color:var(--text-muted);margin-bottom:.5rem;display:block"></i>
+          <p>No results found. Try adjusting filters.</p>
+        </div>
+      </div>
+      <aside style="position:sticky;top:75px;display:flex;flex-direction:column;gap:1.1rem">
+        <div class="sw">
+          <p class="sw-h">⏰ Internship Action Bar</p>
+          <p class="sw-copy">Start from the newest internship posts and shortlist the roles matching your semester or skills.</p>
+          <nav>
+            <a href="internships.html" class="sw-ql"><i class="fa fa-rocket fa-fw"></i> Latest Internships</a>
+            <a href="search.html?q=internship" class="sw-ql"><i class="fa fa-search fa-fw"></i> Search Internships</a>
+          </nav>
+        </div>
+        <div class="sw">
+          <p class="sw-h">🧰 Intern Toolkit</p>
+          <p class="sw-copy">Use these internal tools to move quickly from discovery to application.</p>
+          <nav>
+            <a href="resume-builder.html" class="sw-ql"><i class="fa fa-file-lines fa-fw"></i> Create Internship CV</a>
+            <a href="favorites.html" class="sw-ql"><i class="fa fa-bookmark fa-fw"></i> Saved Internships</a>
+            <a href="jobs.html" class="sw-ql"><i class="fa fa-briefcase fa-fw"></i> Entry-Level Jobs</a>
+          </nav>
+        </div>
+        <div class="sw">
+          <p class="sw-h">🌐 Official External Resource</p>
+          <p class="sw-copy">Check NAVTTC for official skills, training, and youth career initiatives.</p>
+          <nav>            
+            <a href="https://www.navttc.org/" class="sw-ql" target="_blank" rel="noopener noreferrer"><i class="fa fa-up-right-from-square fa-fw"></i> NAVTTC Pakistan</a>
+          </nav>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main><script>
+  let internshipPageItems = [];
 
-<section class="page-banner-hero" aria-label="Page header" style="position:relative;overflow:hidden;background:radial-gradient(circle at 14% 10%,#0d4450,#030911 58%,#02060b);padding:clamp(48px,7vh,80px) 0;min-height:200px;display:flex;align-items:center;">
-  <div style="position:absolute;inset:0;z-index:0;" aria-hidden="true">
-    <img src="banner.webp" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;opacity:.13;mix-blend-mode:luminosity;"/>
-  </div>
-  <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(2,8,18,.82) 0%,rgba(13,68,80,.7) 100%);z-index:1;" aria-hidden="true"></div>
-  <div class="container" style="position:relative;z-index:2;text-align:center;">
-    <h1 style="font-size:clamp(1.7rem,4vw,2.8rem);font-weight:900;color:#fff;margin:0 0 .6rem;letter-spacing:-.02em;">📬 Contact Us</h1>
-    <p style="color:rgba(240,251,255,.78);font-size:clamp(.9rem,2vw,1.05rem);margin:0 auto;max-width:560px;line-height:1.6;">Get in touch with Career Pakistan — we read every message.</p>
-  </div>
-</section>
-<main class='section'><div class='container'><h1 class='page-title'>Contact Us</h1><p class='page-subtitle'>We value your feedback and collaboration ideas.</p><form id='contactForm' class='card' style='max-width:760px'><div class='card-body'><label>Name<input required id='name' class='filter-select'/></label><label>Email<input required type='email' id='email' class='filter-select'/></label><label>Message<textarea required id='message' class='filter-select'></textarea></label><button class='btn' type='submit'>Send Message</button><p id='contactStatus' style='margin-top:.75rem;color:var(--text-secondary)'></p></div></form></div></main><script>document.getElementById('contactForm').addEventListener('submit',e=>{e.preventDefault();contactStatus.textContent='Thanks! Your message has been validated and is ready for backend integration.';});</script>
+  function _renderPage() {
+    const m = {
+      'scholarships': 'Scholarships',
+      'scholarships-national': 'Scholarships',
+      'scholarships-international': 'Scholarships',
+      'internships': 'Internships',
+      'exams': 'Exams',
+      'exams-css': 'Exams',
+      'exams-mdcat': 'Exams',
+      'exams-ppsc': 'Exams',
+      'jobs-government': 'Jobs',
+      'jobs-private': 'Jobs'
+    };
+    const key = 'internships';
+    internshipPageItems = (window.CMS_DATA[m[key]] || []).slice();
+    applyInternshipFilters();
+  }
+
+  function applyInternshipFilters() {
+    const query = document.getElementById('pageSearchInput').value;
+    const sort = document.getElementById('sortBy').value || 'newest';
+
+    let filtered = internshipPageItems.slice();
+    if (query) filtered = filtered.filter(item => matchesTextSearch(item, query));
+
+    filtered = sortItems(filtered, sort);
+
+    const resultsCountEl = document.getElementById('resultsCount');
+    if (resultsCountEl) resultsCountEl.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`;
+
+    if (typeof renderCards === 'function') {
+      renderCards(filtered, 'resultsGrid', 'internship');
+    } else {
+      const resultsGridEl = document.getElementById('resultsGrid');
+      if (resultsGridEl) resultsGridEl.innerHTML = filtered.map(item => cardInternship(item)).join('');
+    }
+
+    document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
+  }
+
+  function clearInternshipFilters() {
+    document.getElementById('pageSearchInput').value = '';
+    document.getElementById('sortBy').value = 'newest';
+    applyInternshipFilters();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => onCMSReady(() => {
+    const run = () => {
+      if (typeof window.sortItems !== 'function' || typeof window.renderCards !== 'function') {
+        setTimeout(run, 120);
+        return;
+      }
+      _renderPage();
+    };
+    run();
+  }));
+</script>
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
@@ -175,8 +284,16 @@
   <a href="exams.html" class="mob-nav-item"><i class="fa fa-file-alt"></i><span>Exams</span></a>
   <a href="books.html" class="mob-nav-item"><i class="fa fa-book"></i><span>Books</span></a>
 </nav>
-<script src="js/google-sheet-loader.js" defer></script><script src="js/app.js" defer></script><script src="js/image-optimizer.js" defer></script><script src="js/premium-upgrades.js" defer></script>
-<script src="js/chatbot-loader.js" defer></script>
-<script>document.addEventListener('DOMContentLoaded',()=>{initDarkMode();updateFavCount();if(window.initMenu)initMenu();});</script>
+<script src="js/google-sheet-loader.js" defer></script>
+<script src="js/app.js" defer></script>
+<script src="js/image-optimizer.js" defer></script>
+<script src="js/ai-chatbot-global.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if(typeof initDarkMode==='function') initDarkMode();
+  if(typeof updateFavCount==='function') updateFavCount();
+  if(typeof initMenu==='function') initMenu();
+});
+</script>
 </body>
 </html>
