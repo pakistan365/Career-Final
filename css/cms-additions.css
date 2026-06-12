@@ -1,0 +1,12 @@
+/* Shared CMS utilities for card rendering, skeletons, and empty states */
+.cms-loading{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:1rem 0}
+.cms-skeleton{height:140px;border-radius:14px;background:linear-gradient(90deg,rgba(8,145,178,.12) 25%,rgba(8,145,178,.22) 37%,rgba(8,145,178,.12) 63%);background-size:400% 100%;animation:cmsShimmer 1.4s ease infinite}
+@keyframes cmsShimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.results-count{font-weight:700;color:var(--text-secondary,#475569)}
+.empty-state{padding:1.25rem;border:1px dashed var(--border,#cbd5e1);border-radius:12px;background:var(--bg-card,#fff);text-align:center}
+.empty-state h3{margin:0 0 .35rem;color:var(--text-primary,#0f172a)}
+.empty-state p{margin:0;color:var(--text-secondary,#475569)}
+
+.cards-grid.is-loading{opacity:.6;pointer-events:none;transition:opacity .2s ease}
+.card-empty-state{border:1px dashed #94a3b8;background:#f8fafc}
+body.dark .card-empty-state{background:#1e293b;border-color:#475569}
