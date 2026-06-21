@@ -107,8 +107,21 @@
     <p style="color:rgba(240,251,255,.78);font-size:clamp(.9rem,2vw,1.05rem);margin:0 auto;max-width:560px;line-height:1.6;">Get in touch with Career Pakistan — we read every message.</p>
   </div>
 </section>
-<main class='section'><div class='container'><h1 class='page-title'>Contact Us</h1><p class='page-subtitle'>We value your feedback and collaboration ideas.</p><form id='contactForm' class='card' style='max-width:760px'><div class='card-body'><label>Name<input required id='name' class='filter-select'/></label><label>Email<input required type='email' id='email' class='filter-select'/></label><label>Message<textarea required id='message' class='filter-select'></textarea></label><button class='btn' type='submit'>Send Message</button><p id='contactStatus' style='margin-top:.75rem;color:var(--text-secondary)'></p></div></form></div></main><script>document.getElementById('contactForm').addEventListener('submit',e=>{e.preventDefault();contactStatus.textContent='Thanks! Your message has been validated and is ready for backend integration.';});</script>
-<footer class="footer">
+<main class='section'>
+  <div class='container'>
+    <h1 class='page-title'>Contact Us</h1>
+    <p class='page-subtitle'>We value corrections, partnership ideas, source updates, and user feedback that helps keep Career Pakistan useful.</p>
+    <div class='cards-grid' style='margin-bottom:1.25rem'>
+      <article class='card'><div class='card-body'><h3>Report an outdated listing</h3><p>Send the page title, organization name, and the correction you found. We review deadline, eligibility, and source-link issues so users do not waste time on expired or unclear opportunities.</p></div></article>
+      <article class='card'><div class='card-body'><h3>Suggest quality improvements</h3><p>If a guide needs more detail, clearer steps, or better categorization, tell us what was missing. We prioritize improvements that add original explanations and practical next steps for Pakistani students and professionals.</p></div></article>
+      <article class='card'><div class='card-body'><h3>Partnership and publishing</h3><p>Organizations can contact us about scholarships, internships, admissions, exams, or career resources. We prefer official source links and complete eligibility information before publishing any opportunity.</p></div></article>
+    </div>
+    <form id='contactForm' class='card' style='max-width:760px'>
+      <div class='card-body'><label>Name<input required id='name' class='filter-select'/></label><label>Email<input required type='email' id='email' class='filter-select'/></label><label>Message<textarea required id='message' class='filter-select'></textarea></label><button class='btn' type='submit'>Send Message</button><p id='contactStatus' style='margin-top:.75rem;color:var(--text-secondary)'></p></div>
+    </form>
+  </div>
+</main><script>document.getElementById('contactForm').addEventListener('submit',e=>{e.preventDefault();contactStatus.textContent='Thanks! Your message has been validated and is ready for backend integration.';});</script>
+  <footer class="footer">
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
