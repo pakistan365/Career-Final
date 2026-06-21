@@ -161,11 +161,18 @@
               </div>
             </div>
           </div>
-        <div id="resultCount" class="results-count" style="margin-bottom:.75rem;font-size:.84rem;color:var(--text-muted)">Loading…</div>
+        </div>
+        <div id="resultsCount" class="results-count" style="margin-bottom:.75rem;font-size:.84rem;color:var(--text-muted)">Loading…</div>
         <div class="cards-grid" id="resultsGrid">
           <div class="skeleton-card"></div>
           <div class="skeleton-card"></div>
           <div class="skeleton-card"></div>
+        </div>
+        <div class="empty-state" id="admissionEmptyState">
+          <i class="fa fa-inbox"></i>
+          <h3>No admissions match your filters</h3>
+          <p>Try clearing the filters or checking back later.</p>
+          <button class="btn btn-secondary" type="button" onclick="clearFilters()">Clear filters</button>
         </div>
       </div><!-- /.section-content#block-admissions -->
       <aside class="section-sidebar">
@@ -188,33 +195,12 @@
           </nav>
         </div>
         <div class="sw">
-          <p class="sw-h">🗺️ Browse by Province</p>
-          <p class="sw-copy">Find admissions in your province or city.</p>
-          <nav>
-            <a href="university-admissions.html?province=Punjab" class="sw-ql"><i class="fa fa-map-marker-alt fa-fw"></i> Punjab</a>
-            <a href="university-admissions.html?province=Sindh" class="sw-ql"><i class="fa fa-map-marker-alt fa-fw"></i> Sindh</a>
-            <a href="university-admissions.html?province=KPK" class="sw-ql"><i class="fa fa-map-marker-alt fa-fw"></i> KPK</a>
-            <a href="university-admissions.html?province=Islamabad" class="sw-ql"><i class="fa fa-map-marker-alt fa-fw"></i> Islamabad</a>
-            <a href="university-admissions.html?province=Balochistan" class="sw-ql"><i class="fa fa-map-marker-alt fa-fw"></i> Balochistan</a>
-          </nav>
-        </div>
-        <div class="sw">
-          <p class="sw-h">📝 Prepare for Entry Tests</p>
-          <p class="sw-copy">Many universities require MDCAT, ECAT, or NTS tests. Prepare early.</p>
+          <p class="sw-h">📝 Entry Test Prep</p>
+          <p class="sw-copy">Prepare for admission tests and compare support options before applying.</p>
           <nav>
             <a href="exams-mdcat.html" class="sw-ql"><i class="fa fa-stethoscope fa-fw"></i> MDCAT Prep</a>
             <a href="exams.html" class="sw-ql"><i class="fa fa-file-alt fa-fw"></i> All Entry Tests</a>
-            <a href="books.html" class="sw-ql"><i class="fa fa-book fa-fw"></i> Study Books</a>
-          </nav>
-        </div>
-        <div class="sw">
-          <p class="sw-h">🏆 Related Opportunities</p>
-          <p class="sw-copy">Explore scholarships and internships alongside admissions.</p>
-          <nav>
-            <a href="scholarships-national.html" class="sw-ql"><i class="fa fa-graduation-cap fa-fw"></i> National Scholarships</a>
-            <a href="scholarships-international.html" class="sw-ql"><i class="fa fa-globe fa-fw"></i> International Scholarships</a>
-            <a href="internships.html" class="sw-ql"><i class="fa fa-briefcase fa-fw"></i> Internships</a>
-            <a href="resume-builder.html" class="sw-ql"><i class="fa fa-file-lines fa-fw"></i> Build Your Resume</a>
+            <a href="scholarships-national.html" class="sw-ql"><i class="fa fa-graduation-cap fa-fw"></i> Scholarships</a>
           </nav>
         </div>
       </aside>
@@ -256,7 +242,7 @@
     if (countEl) countEl.textContent = `${filtered.length} admission${filtered.length !== 1 ? 's' : ''} found`;
 
     const grid    = document.getElementById('resultsGrid');
-    const emptyEl = document.getElementById('emptyState');
+    const emptyEl = document.getElementById('admissionEmptyState');
     if (!grid) return;
     if (!filtered.length) {
       grid.innerHTML = '';
@@ -309,6 +295,16 @@
     </div>`;
   }
 
+  function applyUrlFilters() {
+    const params = new URLSearchParams(window.location.search);
+    const mappings = { province: 'provinceFilter', type: 'typeFilter', category: 'categoryFilter', degree: 'degreeFilter', sort: 'sortBy' };
+    Object.entries(mappings).forEach(([key, id]) => {
+      const value = params.get(key);
+      const el = document.getElementById(id);
+      if (value && el) el.value = value;
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     if (typeof initDarkMode   === 'function') initDarkMode();
     if (typeof updateFavCount === 'function') updateFavCount();
@@ -316,6 +312,7 @@
     onCMSReady(() => {
       const raw = window.CMS_DATA['UniversityAdmissions'] || [];
       window._UA_DATA = raw.filter(u => u.isActive !== false && u.is_active !== false);
+      applyUrlFilters();
       if (typeof updateFavCount === 'function') updateFavCount();
       applyFilters();
       if (typeof registerAutoRefreshSection     === 'function') registerAutoRefreshSection('UniversityAdmissions', () => {
