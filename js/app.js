@@ -1493,6 +1493,9 @@ function loadNotifications() {
     `<a href="${safeUrl(n.link)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${escapeHtml(n.message)}</a>`
 ).join('&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;');
   track.innerHTML = `<span>${html}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;${html}</span>`;
+  // Show the bar (it starts hidden via display:none)
+  const bar = document.getElementById('notifBar');
+  if (bar) bar.style.display = '';
 }
 
 // ── AI chatbot fallback loader (ensures toggle on every page) ─
