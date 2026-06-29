@@ -35,7 +35,7 @@ function _f(r,keys){for(const k of keys){const v=r[k];if(v!==undefined&&v!==null
 function _bool(v){if(!v)return false;const s=String(v).toLowerCase().trim();return s==='true'||s==='yes'||s==='1'||s==='y';}
 function _num(v,fb=null){const n=Number(String(v??'').replace(/,/g,'').trim());return Number.isFinite(n)?n:fb;}
 function _date(v){const r=String(v??'').trim();if(!r)return'';const d=new Date(r);return Number.isNaN(d.getTime())?r:d.toISOString();}
-function _parseLinks(v){const s=String(v||'').trim();if(!s)return[];return s.split(',').map(l=>l.trim()).filter(l=>l);}
+function _parseLinks(v){const s=String(v||'').trim();if(!s)return[];return s.split(/[\n;,]+/).map(l=>l.trim()).filter(l=>l);}
 
 // BOOKS: ID,Title,Author,Exam Type,Price,Apply Link,Details,PDF Link,Image Link,Category,Language,Pages,Edition,Is Free,Tags,Short Description,Is Featured,Posted Date,Download Link
 function mapBook(r){
