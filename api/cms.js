@@ -178,12 +178,40 @@ const MAPPERS = {
     read_time: g(r,['Read Time']),
     is_published: bool(g(r,['Is Published','Published'])),
   }),
-  Notifications: (r) => ({
-    id: g(r,['ID','id']) || r.id,
-    message: g(r,['Message','Text','Title']),
-    link: g(r,['Link','URL']),
-    is_active: bool(g(r,['Is Active','Active','Show'])),
-  }),
+  Notifications: (r) => {
+    const parseLinks = (value) => String(value || '').split(/[\n;,]+/).map(v => v.trim()).filter(Boolean);
+    const priorityRaw = String(g(r,['Priority']) || '').trim().toLowerCase();
+    const priorityMap = { low: 1, medium: 3, med: 3, high: 4, urgent: 5, critical: 5 };
+    const priority = priorityMap[priorityRaw] !== undefined ? priorityMap[priorityRaw] : (Number(priorityRaw) || 0);
+    const title = g(r,['Title','Message','Text']);
+    const externalLinks = parseLinks(g(r,['External Links','External Link','Link','URL']));
+    const pdfLinks = parseLinks(g(r,['PDF Links','PDF Link','Document Links','Document Link']));
+    const imageLinks = parseLinks(g(r,['Image Links','Image Link','Images','Image']));
+    const postedDate = g(r,['Posted Date','Date']);
+    const startDate = g(r,['Start Date']);
+    const endDate = g(r,['End Date']);
+    return {
+      id: g(r,['ID','id']) || r.id,
+      title,
+      message: title,
+      category: g(r,['Category']) || 'Urgent',
+      priority,
+      description: g(r,['Description','Details','Body']),
+      details: g(r,['Description','Details','Body']),
+      imageLinks, image_links: imageLinks,
+      pdfLinks, pdf_links: pdfLinks,
+      externalLinks, external_links: externalLinks,
+      relatedSheet: g(r,['Related Sheet']), related_sheet: g(r,['Related Sheet']),
+      relatedId: g(r,['Related ID','Related Id']), related_id: g(r,['Related ID','Related Id']),
+      startDate, start_date: startDate,
+      endDate, end_date: endDate,
+      link: externalLinks[0] || pdfLinks[0] || imageLinks[0] || '',
+      isActive: bool(g(r,['Is Active','Active','Show'])),
+      is_active: bool(g(r,['Is Active','Active','Show'])),
+      postedDate, posted_date: postedDate,
+      tags: g(r,['Tags'])
+    };
+  },
 };
 
 // ── Fetch and map a single tab ─────────────────────────────────
