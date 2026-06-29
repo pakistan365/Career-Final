@@ -82,9 +82,17 @@ function escapeHtml(value) {
 function safeUrl(url) {
   const raw = text(url).trim();
   if (!raw) return '#';
+  
+  if (/^[+\d][\d\s().-]{6,}$/.test(raw)) {
+    return 'tel:' + raw.replace(/[^\d+]/g, '');
+  }
+
+  const normalized = /^www\./i.test(raw) ? `https://${raw}` : raw;
+
   try {
-    const parsed = new URL(raw, window.location.origin);
-    if (!['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol)) return '#';
+    const parsed = new URL(normalized, window.location.origin);
+    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:', 'sms:', 'whatsapp:'];
+    if (!allowedProtocols.includes(parsed.protocol)) return '#';
     return parsed.href;
   } catch {
     return '#';
@@ -1484,13 +1492,30 @@ const container = document.getElementById(containerId);
 }
 
 // ── Notification bar loader ───────────────────────────────────
+function getNotificationTargetUrl(notification) {
+  const n = notification || {};
+  const relatedSheet = text(n.relatedSheet || n.related_sheet).trim();
+  const relatedId = text(n.relatedId || n.related_id).trim();
+  const sheetTypeMap = {
+    Jobs: 'job', Scholarships: 'scholarship', Internships: 'internship',
+    Exams: 'exam', Books: 'book', UniversityAdmissions: 'admission'
+  };
+
+  if (relatedSheet && relatedId && sheetTypeMap[relatedSheet]) {
+    return getCardDetailsUrl(relatedId, sheetTypeMap[relatedSheet], n.title || n.message);
+  }
+
+  if (n.id) return `notifications.html?id=${encodeURIComponent(n.id)}`;
+  return safeUrl(n.link || '#');
+}
+
 function loadNotifications() {
   const track = document.getElementById('notifTrack');
   if (!track) return;
-  const notifs = (window.CMS_DATA.Notifications || []).filter(n => n.isActive);
+  const notifs = (window.CMS_DATA.Notifications || []).filter(n => n.isActive || n.is_active);
   if (notifs.length === 0) return;
   const html = notifs.map(n =>
-    `<a href="${safeUrl(n.link)}" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none;">${escapeHtml(n.message)}</a>`
+    `<a href="${safeUrl(getNotificationTargetUrl(n))}" style="color:inherit;text-decoration:none;">${escapeHtml(n.message || n.title || 'Notification')}</a>`
 ).join('&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;');
   track.innerHTML = `<span>${html}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;${html}</span>`;
   // Show the bar (it starts hidden via display:none)
