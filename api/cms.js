@@ -86,7 +86,7 @@ function g(row, keys) {
 }
 function bool(v) {
   const s = String(v || '').toLowerCase().trim();
-  return s === 'true' || s === 'yes' || s === '1' || s === 'y';
+  return s === 'true' || s === 'yes' || s === '1' || s === 'y' || s === 'active' || s === 'show' || s === 'published';
 }
 
 // ── Mappers (same field mappings as google-sheet-loader.js) ────
@@ -206,8 +206,8 @@ const MAPPERS = {
       startDate, start_date: startDate,
       endDate, end_date: endDate,
       link: externalLinks[0] || pdfLinks[0] || imageLinks[0] || '',
-      isActive: bool(g(r,['Is Active','Active','Show'])),
-      is_active: bool(g(r,['Is Active','Active','Show'])),
+      isActive: (function(v){ return v === '' ? true : bool(v); }(g(r,['Is Active','Active','Show','Published']))),
+      is_active: (function(v){ return v === '' ? true : bool(v); }(g(r,['Is Active','Active','Show','Published']))),
       postedDate, posted_date: postedDate,
       tags: g(r,['Tags'])
     };
