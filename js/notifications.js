@@ -9,12 +9,15 @@ let filteredNotifications = [];
 let currentFilter = { category: '', priority: '' };
 
 // Listen for CMS data ready
+if (typeof window.onCMSReady === 'function') window.onCMSReady(initNotifications);
 document.addEventListener('cmsReady', initNotifications);
+document.addEventListener('cmsRefresh', initNotifications);
 
 function initNotifications() {
   allNotifications = window.CMS_DATA.Notifications || [];
   renderNotifications();
   updateSidebar();
+  openRequestedNotification();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -160,11 +163,17 @@ function getLinkLabel(link, type, index) {
 }
 
 function getLinkHref(link, type) {
-  if (type === 'phone') return 'tel:' + link.replace(/[^\d\+]/g, '');
+  const raw = String(link || '').trim();
+  if (type === 'phone') return 'tel:' + raw.replace(/[^\d\+]/g, '');
   if (type === 'text')  return '#';
-  // Normalise www links
-  if (/^www\./i.test(link)) return 'https://' + link;
-  return link;
+  if (/^www\./i.test(raw)) return 'https://' + raw;
+  try {
+    const parsed = new URL(raw, window.location.origin);
+    const allowed = ['http:', 'https:', 'mailto:', 'tel:', 'sms:', 'whatsapp:'];
+    return allowed.includes(parsed.protocol) ? parsed.href : '#';
+  } catch {
+    return '#';
+  }
 }
 
 function renderUniversalLink(link, index) {
@@ -177,7 +186,7 @@ function renderUniversalLink(link, index) {
 
   let subtext = '';
   try {
-    if (type === 'url' || type === 'apply') subtext = new URL(link).hostname.replace('www.', '');
+    if (type === 'url' || type === 'apply') subtext = new URL(href).hostname.replace('www.', '');
     else if (type === 'gdrive') subtext = 'Google Drive';
     else if (type === 'whatsapp') subtext = 'WhatsApp';
     else if (type === 'pdf') subtext = 'PDF Document';
@@ -418,8 +427,9 @@ function switchMainImage(src, thumbEl) {
 // ════════════════════════════════════════════════════════════
 
 function renderRelatedContent(sheetName, recordId) {
-  const sheetData = window.CMS_DATA[sheetName] || [];
-  const related = sheetData.filter(item => item.id === recordId).slice(0, 5);
+  const normalizedSheet = normalizeSheetName(sheetName);
+  const sheetData = window.CMS_DATA[normalizedSheet] || window.CMS_DATA[sheetName] || [];
+  const related = sheetData.filter(item => String(item.id) === String(recordId)).slice(0, 5);
   const relatedList = document.getElementById('relatedList');
   if (!relatedList) return;
 
@@ -429,7 +439,7 @@ function renderRelatedContent(sheetName, recordId) {
   }
 
   relatedList.innerHTML = related.map(item => `
-    <div class="related-item" onclick="navigateToRelated('${escHtml(sheetName)}', '${escHtml(item.id)}')">
+    <div class="related-item" onclick="navigateToRelated('${escHtml(normalizedSheet)}', '${escHtml(item.id)}')">
       <span class="related-item-title">${escHtml((item.title || item.universityName || item.program || 'Item').substring(0, 45))}</span>
       <span class="related-item-meta">${escHtml(sheetName)} · ${new Date(item.postedDate || item.date || new Date()).toLocaleDateString('en-PK', { month: 'short', day: 'numeric' })}</span>
     </div>
@@ -459,13 +469,34 @@ function renderMoreFromCategory(currentId, category) {
   `).join('');
 }
 
-function navigateToRelated(sheetName, recordId) {
-  const pageMap = {
-    'Books': 'books.html', 'Jobs': 'jobs.html', 'Scholarships': 'scholarships.html',
-    'Exams': 'exams.html', 'Internships': 'internships.html', 'UniversityAdmissions': 'university-admissions.html'
+function normalizeSheetName(sheetName) {
+  const key = String(sheetName || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+  const map = {
+    books: 'Books', book: 'Books', jobs: 'Jobs', job: 'Jobs',
+    scholarships: 'Scholarships', scholarship: 'Scholarships',
+    exams: 'Exams', exam: 'Exams', internships: 'Internships', internship: 'Internships',
+    universityadmissions: 'UniversityAdmissions', admissions: 'UniversityAdmissions', admission: 'UniversityAdmissions'
   };
-  const page = pageMap[sheetName];
-  if (page) window.location.href = page + '?id=' + encodeURIComponent(recordId);
+  return map[key] || sheetName;
+}
+
+function navigateToRelated(sheetName, recordId) {
+  const typeMap = {
+    Books: 'book', Jobs: 'job', Scholarships: 'scholarship',
+    Exams: 'exam', Internships: 'internship', UniversityAdmissions: 'admission'
+  };
+  const normalizedSheet = normalizeSheetName(sheetName);
+  const type = typeMap[normalizedSheet];
+  if (type) window.location.href = 'opportunity.html?type=' + encodeURIComponent(type) + '&id=' + encodeURIComponent(recordId);
+}
+
+function openRequestedNotification() {
+  const id = new URLSearchParams(window.location.search).get('id');
+  if (!id || openRequestedNotification.lastId === id) return;
+  const exists = allNotifications.some(n => String(n.id) === String(id));
+  if (!exists) return;
+  openRequestedNotification.lastId = id;
+  setTimeout(() => openNotificationDetail(id), 0);
 }
 
 // ════════════════════════════════════════════════════════════
