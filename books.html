@@ -337,9 +337,10 @@ function applyFilters() {
 function renderBookCard(b) {
   const img = escapeHtml(b.image_url || (b.image_links && b.image_links[0]) || 'banner.webp');
   const isFree = b.is_free === true || String(b.is_free).toLowerCase() === 'true' || String(b.is_free).toLowerCase() === 'yes';
-  const downloadUrl = safeUrl(b.download_link || (b.pdf_links && b.pdf_links[0]) || b.apply_link || '');
   const detailUrl = `opportunity.html?type=book&id=${encodeURIComponent(b.id)}`;
-  return `<div class="card">
+  const safeId = escapeJsSingleQuote(String(b.id || ''));
+  const safeTitle = escapeJsSingleQuote(b.title || 'Book');
+  return `<div class="card" data-id="${escapeHtml(String(b.id || ''))}" data-type="book">
     <div class="card-img" style="height:200px;overflow:hidden;position:relative">
       <img src="${img}" alt="${escapeHtml(b.title||'Book')}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover" onerror="this.src='banner.webp'"/>
       ${isFree ? '<span style="position:absolute;top:.5rem;left:.5rem;background:#16a34a;color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .55rem;border-radius:var(--radius-full)">✅ Free PDF</span>' : ''}
@@ -352,10 +353,10 @@ function renderBookCard(b) {
       <h3 class="card-title" style="font-size:.98rem;line-height:1.35;margin-bottom:.35rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(b.title||'')}</h3>
       ${b.author ? `<p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.4rem">By ${escapeHtml(b.author)}</p>` : ''}
       ${b.pages ? `<p style="font-size:.78rem;color:var(--text-muted);margin-bottom:.6rem"><i class="fa fa-file" style="color:var(--primary);margin-right:.3rem"></i>${escapeHtml(b.pages)} pages</p>` : ''}
-      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
-        ${downloadUrl && downloadUrl !== '#' ? `<a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="btn" style="flex:1;justify-content:center;font-size:.82rem;padding:.6rem .8rem"><i class="fa fa-download"></i> ${isFree ? 'Download PDF' : 'Get Book'}</a>` : ''}
-        <a href="${detailUrl}" class="btn btn-secondary" style="flex:1;justify-content:center;font-size:.82rem;padding:.6rem .8rem">Details</a>
-      </div>
+    </div>
+    <div class="card-footer">
+      <a class="btn btn-primary" href="${detailUrl}">View Details <i class="fa fa-arrow-right"></i></a>
+      <button class="btn-share" onclick="shareOpportunity('${safeId}','book','${safeTitle}',this)" ${shareButtonAttrs(b.title || 'Book')}><i class="fa fa-share-nodes"></i></button>
     </div>
   </div>`;
 }
