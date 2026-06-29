@@ -696,7 +696,6 @@ function cardExam(e) {
 }
 
 function cardBook(b) {
-  const fav = isFav(b.id, 'book');
   const src = getCardImage(b, 'book');
   const imgHTML = cardImageHTML(src, b.title);
   return `
@@ -725,7 +724,6 @@ function cardBook(b) {
     <div class="card-footer">
       <a class="btn btn-primary" href="${getCardDetailsUrl(b.id,'book',b.title)}">View Details <i class="fa fa-arrow-right"></i></a>
       <button class="btn-share" onclick="shareOpportunity('${escapeJsSingleQuote(normalizeItemId(b.id))}','book','${escapeJsSingleQuote(b.title)}',this)" ${shareButtonAttrs(b.title)}><i class="fa fa-share-nodes"></i></button>
-      <button class="btn-fav ${fav?'active':''}" onclick="handleFav('${escapeJsSingleQuote(String(b.id))}','${escapeJsSingleQuote(b.title)}','book',this)" ${getFavButtonStateAttrs(fav)}><i class="fa${fav?'s':'r'} fa-bookmark"></i><span class="visually-hidden">${fav?'Saved':'Save'}</span></button>
     </div>
   </div>`;
 }
