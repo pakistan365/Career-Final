@@ -528,3 +528,31 @@
   background: var(--bg-secondary, #1e2a38);
   border-color: var(--border, #334155);
 }
+
+/* Standalone notification detail page mode (notifications.html?id=...) */
+.notif-modal.notif-detail-page {
+  position: static;
+  inset: auto;
+  display: block;
+  padding: 2rem 1rem 3rem;
+  background: var(--bg-secondary, #f8fafc);
+  animation: none;
+}
+
+.notif-modal.notif-detail-page .notif-modal-overlay,
+.notif-modal.notif-detail-page .notif-modal-close {
+  display: none;
+}
+
+.notif-modal.notif-detail-page .notif-modal-content {
+  max-width: 1120px;
+  max-height: none;
+  margin: 0 auto;
+  overflow: visible;
+  animation: none;
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.notif-modal.notif-detail-page .notif-modal-header {
+  padding-top: 2rem;
+}
