@@ -423,22 +423,6 @@ async function _loadFromCsvFallback(){
   _writeLocalCache();
 }
 
-/* ════════════════════════════════════════════════════════════
-   FIRE CMS READY EVENT — ensures pages know when data is loaded
-   ════════════════════════════════════════════════════════════ */
-function _fireCMSReady() {
-  // Dispatch cmsReady event for all listeners (notifications.js, etc.)
-  const event = new CustomEvent('cmsReady', { detail: { data: window.CMS_DATA } });
-  document.dispatchEvent(event);
-  
-  // Also try onCMSReady callbacks if registered
-  if (window.onCMSReady && typeof window.onCMSReady === 'function') {
-    try {
-      window.onCMSReady(window.CMS_DATA);
-    } catch(e) { console.error('[CMS] onCMSReady callback error:', e); }
-  }
-}
-
 async function loadAllSheets(){
   if(window.CMS_LOADING.global)return window.CMS_LOADING.globalPromise||Promise.resolve(window.CMS_DATA);
   window.CMS_LOADING.global=true;
