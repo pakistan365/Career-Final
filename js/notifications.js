@@ -8,29 +8,13 @@ let allNotifications = [];
 let filteredNotifications = [];
 let currentFilter = { category: '', priority: '' };
 
-// Multiple initialization trigger points for robustness
+// Listen for CMS data ready
 if (typeof window.onCMSReady === 'function') window.onCMSReady(initNotifications);
 document.addEventListener('cmsReady', initNotifications);
 document.addEventListener('cmsRefresh', initNotifications);
 
-// If DOM is already loaded when this script executes, try immediate init
-if (document.readyState !== 'loading') {
-  document.addEventListener('DOMContentLoaded', initNotifications);
-} else {
-  document.addEventListener('DOMContentLoaded', initNotifications);
-}
-
 function initNotifications() {
-  const notifData = window.CMS_DATA && window.CMS_DATA.Notifications;
-  
-  // Only proceed if we have actual data (not empty array)
-  if (!Array.isArray(notifData) || !notifData.length) {
-    // Data not ready yet, schedule retry
-    setTimeout(initNotifications, 250);
-    return;
-  }
-  
-  allNotifications = notifData;
+  allNotifications = (window.CMS_DATA && window.CMS_DATA.Notifications) || [];
   renderNotifications();
   updateSidebar();
   openRequestedNotification();
@@ -38,42 +22,25 @@ function initNotifications() {
 
 // Safety net: if for any reason cmsReady never fires (race condition, slow
 // network, or a missed event) the page should still recover instead of
-// showing skeleton loaders forever. Poll and retry data load if needed.
+// showing skeleton loaders forever. Poll briefly, and force a reload of the
+// CMS data once if nothing has shown up after a few seconds.
 (function notificationsSafetyNet() {
   let attempts = 0;
-  const maxAttempts = 40; // ~20s of polling
+  const maxAttempts = 20; // ~10s of polling
   const tick = () => {
     attempts++;
     const data = window.CMS_DATA && window.CMS_DATA.Notifications;
-    
-    // If we have data and haven't initialized yet, do it now
     if (Array.isArray(data) && data.length) {
-      if (!allNotifications.length) {
-        initNotifications();
-      }
-      return; // Success
+      if (!allNotifications.length) initNotifications();
+      return;
     }
-    
-    // Every 5 attempts (2.5s), force a fresh load attempt
-    if (attempts % 5 === 0 && typeof window.loadAllSheets === 'function') {
-      window.loadAllSheets().catch(err => {
-        console.warn('[Notifications] Fresh load attempt failed:', err?.message || err);
-      });
+    if (attempts === 10 && typeof window.loadAllSheets === 'function') {
+      // Nudge a fresh load in case the first attempt silently failed.
+      window.loadAllSheets().catch(() => {});
     }
-    
-    // Continue polling if we haven't exceeded max attempts
-    if (attempts < maxAttempts) {
-      setTimeout(tick, 500);
-    } else if (!allNotifications.length) {
-      // After max attempts with no data, render empty state
-      console.warn('[Notifications] No data loaded after ' + (maxAttempts * 0.5) + ' seconds');
-      renderNotifications();
-      updateSidebar();
-    }
+    if (attempts < maxAttempts) setTimeout(tick, 500);
   };
-  
-  // Start polling after a brief delay
-  setTimeout(tick, 1000);
+  setTimeout(tick, 500);
 })();
 
 // ════════════════════════════════════════════════════════════
@@ -180,128 +147,68 @@ function renderStars(priority) {
 }
 
 // ════════════════════════════════════════════════════════════
-// LINK TYPE DETECTION (ENHANCED)
-// Detects: URLs, emails, phones, SMS, PDFs, images, Google Drive, 
-// WhatsApp, and more. Handles all link formats.
+// LINK TYPE DETECTION
 // ════════════════════════════════════════════════════════════
 
 function detectLinkType(link) {
   const s = String(link || '').trim();
-  if (!s) return 'text';
 
-  // Email address: user@domain.com or mailto:user@domain.com
-  if (/^mailto:/i.test(s) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) return 'email';
+  // Phone number: starts with + or digits, possibly with spaces/dashes
+  if (/^[\+\d][\d\s\-\(\)]{6,}$/.test(s)) return 'phone';
 
-  // SMS: sms:number or +1234567890 formatted as SMS
-  if (/^sms:/i.test(s)) return 'sms';
-
-  // Phone number: +92 XXX XXXXXXX, 0300-1234567, (123) 456-7890, etc.
-  // At least 10 digits, can have +, -, (), spaces
-  if (/^[\+]?[\d\s\-\(\)]{9,}$/.test(s) && /\d/.test(s.replace(/\D/g, '')) && s.replace(/\D/g, '').length >= 9) {
-    return 'phone';
-  }
-
-  // If it's not a URL/www, treat as text/label
+  // If it's not a URL, treat as text/label
   if (!/^https?:\/\//i.test(s) && !/^www\./i.test(s)) return 'text';
 
   const lower = s.toLowerCase();
 
-  // Image: by extension or known image hosts
+  // Image
   if (/\.(jpe?g|png|gif|webp|svg|bmp)(\?.*)?$/.test(lower)) return 'image';
   if (lower.includes('i.ibb.co') || lower.includes('imgur.com') || lower.includes('imgbb.com')) return 'image';
-  
-  // Google Drive: distinguish between image and document
   if (lower.includes('drive.google.com') && (lower.includes('/file/') || lower.includes('id='))) {
-    // If URL contains image extension, treat as image; otherwise doc
-    if (lower.match(/\.(jpe?g|png|gif|webp|svg)/i)) return 'image';
-    return 'gdrive';
+    // Google Drive can be image or doc — check extension or assume doc
+    return lower.match(/\.(jpe?g|png|gif|webp)/) ? 'image' : 'gdrive';
   }
 
-  // PDF: explicit PDF marker
-  if (/\.pdf(\?|$)/i.test(lower) || lower.includes('pdf')) return 'pdf';
+  // PDF
+  if (lower.includes('.pdf') || lower.includes('pdf')) return 'pdf';
 
-  // Apply / Registration forms: keywords in URL
-  if (/apply|register|form|signup|sign-up|admission|submit/i.test(lower)) return 'apply';
+  // Apply / registration forms
+  if (/apply|register|form|signup|sign-up|admission/i.test(lower)) return 'apply';
 
-  // WhatsApp: wa.me links or messaging
+  // WhatsApp
   if (lower.includes('wa.me') || lower.includes('whatsapp')) return 'whatsapp';
 
-  // Fallback: regular URL
   return 'url';
 }
 
 function getLinkIcon(type) {
   const icons = {
-    email:     'fa-envelope',
-    sms:       'fa-message',
-    phone:     'fa-phone',
-    image:     'fa-image',
-    pdf:       'fa-file-pdf',
-    gdrive:    'fa-brands fa-google-drive',
-    apply:     'fa-pen-to-square',
-    whatsapp:  'fa-brands fa-whatsapp',
-    url:       'fa-arrow-up-right-from-square',
-    text:      'fa-info-circle'
+    phone: 'fa-phone', image: 'fa-image', pdf: 'fa-file-pdf',
+    gdrive: 'fa-brands fa-google-drive', apply: 'fa-pen-to-square',
+    whatsapp: 'fa-brands fa-whatsapp', url: 'fa-arrow-up-right-from-square', text: 'fa-info-circle'
   };
   return icons[type] || 'fa-link';
 }
 
 function getLinkLabel(link, type, index) {
   switch (type) {
-    case 'email':    
-      const email = String(link || '').replace(/^mailto:/i, '').trim();
-      return email.length > 0 ? email : 'Send Email';
-    case 'sms':      
-      const smsNum = String(link || '').replace(/^sms:/i, '').trim();
-      return 'Text: ' + smsNum;
-    case 'phone':    
-      return 'Call: ' + link;
-    case 'image':    
-      return 'Image ' + (index + 1);
-    case 'pdf':      
-      return link.split('/').pop().replace(/\?.*/, '') || ('Document ' + (index + 1));
-    case 'gdrive':   
-      return 'Open Document ' + (index + 1);
-    case 'apply':    
-      return 'Apply / Register';
-    case 'whatsapp': 
-      return 'Contact on WhatsApp';
-    case 'text':     
-      return link;
+    case 'phone':    return 'Call: ' + link;
+    case 'image':    return 'Image ' + (index + 1);
+    case 'pdf':      return link.split('/').pop().replace(/\?.*/, '') || ('Document ' + (index + 1));
+    case 'gdrive':   return 'Open Document ' + (index + 1);
+    case 'apply':    return 'Apply / Register';
+    case 'whatsapp': return 'Contact on WhatsApp';
+    case 'text':     return link;
     default:
-      try { return new URL(link).hostname.replace('www.', ''); } 
-      catch { return 'Visit Link'; }
+      try { return new URL(link).hostname.replace('www.', ''); } catch { return 'Visit Link'; }
   }
 }
 
 function getLinkHref(link, type) {
   const raw = String(link || '').trim();
-  
-  // Email: convert to mailto: if needed
-  if (type === 'email') {
-    const emailAddr = raw.replace(/^mailto:/i, '').trim();
-    return 'mailto:' + encodeURIComponent(emailAddr);
-  }
-  
-  // SMS: convert to sms: protocol
-  if (type === 'sms') {
-    const smsNum = raw.replace(/^sms:/i, '').trim().replace(/\D/g, '');
-    return 'sms:' + smsNum;
-  }
-  
-  // Phone: convert to tel: protocol
-  if (type === 'phone') {
-    const phoneNum = raw.replace(/\D/g, '');
-    return 'tel:' + phoneNum;
-  }
-  
-  // Text/label: no action
-  if (type === 'text') return '#';
-  
-  // www links: prepend https://
+  if (type === 'phone') return 'tel:' + raw.replace(/[^\d\+]/g, '');
+  if (type === 'text')  return '#';
   if (/^www\./i.test(raw)) return 'https://' + raw;
-  
-  // Try to validate URL
   try {
     const parsed = new URL(raw, window.location.origin);
     const allowed = ['http:', 'https:', 'mailto:', 'tel:', 'sms:', 'whatsapp:'];
@@ -316,19 +223,17 @@ function renderUniversalLink(link, index) {
   const href = getLinkHref(link, type);
   const label = getLinkLabel(link, type, index);
   const icon = getLinkIcon(type);
-  const isExternal = (type !== 'text' && type !== 'phone' && type !== 'email' && type !== 'sms');
+  const isExternal = (type !== 'text' && type !== 'phone');
   const targetAttr = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
 
   let subtext = '';
   try {
-    if (type === 'email') subtext = 'Email';
-    else if (type === 'sms') subtext = 'SMS Message';
-    else if (type === 'phone') subtext = 'Phone Number';
-    else if (type === 'url' || type === 'apply') subtext = new URL(href).hostname.replace('www.', '');
+    if (type === 'url' || type === 'apply') subtext = new URL(href).hostname.replace('www.', '');
     else if (type === 'gdrive') subtext = 'Google Drive';
     else if (type === 'whatsapp') subtext = 'WhatsApp';
     else if (type === 'pdf') subtext = 'PDF Document';
     else if (type === 'image') subtext = 'Image File';
+    else if (type === 'phone') subtext = 'Phone Number';
   } catch {}
 
   return `
