@@ -25,14 +25,26 @@ function normalizeText(value) {
   return text(value).trim().toLowerCase();
 }
 
+function normalizeFilterText(value) {
+  return normalizeText(value)
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function matchesFilterValue(value, filterValue) {
   if (!filterValue) return true;
-  return normalizeText(value) === normalizeText(filterValue);
+  const normalizedValue = normalizeFilterText(value);
+  const normalizedFilter = normalizeFilterText(filterValue);
+  if (!normalizedValue || !normalizedFilter) return false;
+  return normalizedValue === normalizedFilter ||
+    normalizedValue.includes(normalizedFilter) ||
+    normalizedFilter.includes(normalizedValue);
 }
 
 function includesFilterValue(value, filterValue) {
   if (!filterValue) return true;
-  return normalizeText(value).includes(normalizeText(filterValue));
+  return normalizeFilterText(value).includes(normalizeFilterText(filterValue));
 }
 
 function isGovernmentType(value) {
@@ -82,21 +94,68 @@ function escapeHtml(value) {
 function safeUrl(url) {
   const raw = text(url).trim();
   if (!raw) return '#';
-  
-  if (/^[+\d][\d\s().-]{6,}$/.test(raw)) {
-    return 'tel:' + raw.replace(/[^\d+]/g, '');
-  }
 
-  const normalized = /^www\./i.test(raw) ? `https://${raw}` : raw;
+  let normalized = raw;
+
+  if (/^mailto:/i.test(normalized) || /^tel:/i.test(normalized)) {
+    // preserve supported schemes as-is
+  } else if (/^[^\s@]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(normalized)) {
+    normalized = `mailto:${normalized}`;
+  } else if (/^\+?[0-9][0-9\s.\-()]{6,}$/i.test(normalized)) {
+    const digits = normalized.replace(/[^0-9+]/g, '');
+    if (isPhoneNumber(digits)) normalized = `tel:${digits}`;
+  } else if (/^www\./i.test(normalized)) {
+    normalized = `https://${normalized}`;
+  } else if (!/^[a-z][a-z0-9+.-]*:/i.test(normalized) && /\S+\.\S+/i.test(normalized)) {
+    normalized = `https://${normalized}`;
+  }
 
   try {
     const parsed = new URL(normalized, window.location.origin);
-    const allowedProtocols = ['http:', 'https:', 'mailto:', 'tel:', 'sms:', 'whatsapp:'];
-    if (!allowedProtocols.includes(parsed.protocol)) return '#';
+    if (!['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol)) return '#';
     return parsed.href;
   } catch {
     return '#';
   }
+}
+
+function isMailtoUrl(url) {
+  return /^mailto:/i.test(text(url).trim());
+}
+
+function isTelUrl(url) {
+  return /^tel:/i.test(text(url).trim());
+}
+
+function isEmailAddress(value) {
+  return /^[^\s@]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(text(value).trim());
+}
+
+function isPhoneNumber(value) {
+  const digits = text(value).replace(/[^0-9+]/g, '');
+  return digits.length >= 7 && digits.length <= 15 && /^[+0-9]+$/.test(digits);
+}
+
+function extractUrls(value) {
+  const raw = text(value);
+  if (!raw) return [];
+
+  const found = new Set();
+  const fragments = [
+    ...(raw.match(/https?:\/\/[^\s<>\"'\)\]]+/gi) || []),
+    ...(raw.match(/www\.[^\s<>\"'\)\]]+/gi) || []),
+    ...(raw.match(/mailto:[^\s<>\"'\)\]]+/gi) || []),
+    ...(raw.match(/tel:[^\s<>\"'\)\]]+/gi) || [])
+  ];
+  fragments.forEach((u) => found.add(safeUrl(u)));
+
+  (raw.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g) || []).forEach((u) => found.add(safeUrl(`mailto:${u}`)));
+  (raw.match(/(?:\+?\d[\d\s.\-()]{6,}\d)/g) || []).forEach((match) => {
+    const normalized = match.replace(/[^0-9+]/g, '');
+    if (isPhoneNumber(normalized)) found.add(safeUrl(`tel:${normalized}`));
+  });
+
+  return [...found].filter(u => u !== '#');
 }
 
 function escapeJsSingleQuote(value) {
@@ -106,12 +165,6 @@ function escapeJsSingleQuote(value) {
     .replace(/\r/g, '\\r')
     .replace(/\n/g, '\\n')
     .replace(/<\/script/gi, '<\\/script');
-}
-
-function extractUrls(value) {
-  const raw = text(value);
-  const matches = raw.match(/https?:\/\/[^\s<>"')\]]+/gi) || [];
-  return [...new Set(matches.map(safeUrl).filter(u => u !== '#'))];
 }
 
 function getUrlFilename(url) {
@@ -162,6 +215,8 @@ function collectResourceLinks(item) {
 function classifyResourceUrl(url) {
   const safe = safeUrl(url);
   if (safe === '#') return { kind: 'link', icon: 'fa-link', label: 'Open Link', url: '#' };
+  if (isMailtoUrl(safe)) return { kind: 'email', icon: 'fa-envelope', label: 'Email', url: safe };
+  if (isTelUrl(safe)) return { kind: 'phone', icon: 'fa-phone', label: 'Phone', url: safe };
   if (isTeraBoxUrl(safe)) return { kind: 'cloud', icon: 'fa-cloud', label: 'TeraBox File', url: safe };
   if (isPdfUrl(safe)) return { kind: 'pdf', icon: 'fa-file-pdf', label: 'PDF', url: safe };
   if (isImageUrl(safe)) return { kind: 'image', icon: 'fa-image', label: 'Image', url: safe };
@@ -206,6 +261,18 @@ function renderInlineResourcePreview(url) {
     if (meta.kind === 'cloud') {
     return `
       <a class="resource-inline resource-inline-card" href="${meta.url}" target="_blank" rel="noopener noreferrer">
+        <div class="resource-mini-icon"><i class="fa ${meta.icon}"></i></div>
+        <div class="resource-mini-meta">
+          <strong>${escapeHtml(meta.label)}</strong>
+          <span>${escapeHtml(host)}</span>
+        </div>
+        <i class="fa fa-up-right-from-square"></i>
+      </a>
+    `;
+  }
+  if (meta.kind === 'email' || meta.kind === 'phone') {
+    return `
+      <a class="resource-inline resource-inline-card" href="${meta.url}" ${meta.kind === 'link' ? 'target="_blank" rel="noopener noreferrer"' : ''}>
         <div class="resource-mini-icon"><i class="fa ${meta.icon}"></i></div>
         <div class="resource-mini-meta">
           <strong>${escapeHtml(meta.label)}</strong>
@@ -287,13 +354,23 @@ function renderResourceActions(item, title) {
   if (!links.length) return '';
   const pdf = links.find(isPdfUrl);
   const image = links.find(isImageUrl);
+  const email = links.find(isMailtoUrl);
+  const phone = links.find(isTelUrl);
   const teraPdf = links.find((link) => isTeraBoxUrl(link) && isPdfUrl(link));
   const teraImage = links.find((link) => isTeraBoxUrl(link) && isImageUrl(link));
   const tera = links.find(isTeraBoxUrl);
+  const firstLink = links.find((link) => {
+    const safe = safeUrl(link);
+    return safe !== '#' && !isPdfUrl(safe) && !isImageUrl(safe) && !isMailtoUrl(safe) && !isTelUrl(safe);
+  });
   return `
     <div class="resource-actions">
       ${pdf ? `<button class="btn btn-ghost" onclick="openResourcePreview('${escapeJsSingleQuote(pdf)}','${escapeJsSingleQuote(title)}')"><i class="fa fa-file-pdf"></i> Preview PDF</button>` : ''}
-      ${image ? `<button class="btn btn-ghost" onclick="openResourcePreview('${escapeJsSingleQuote(image)}','${escapeJsSingleQuote(title)}','image')"><i class="fa fa-image"></i> View Image</button>` : ''}
+
+      ${image ? `<a href="${safeUrl(image)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost"><i class="fa fa-image"></i> View Image</a>` : ''}
+      ${email ? `<a href="${safeUrl(email)}" class="btn btn-ghost"><i class="fa fa-envelope"></i> Email</a>` : ''}
+      ${phone ? `<a href="${safeUrl(phone)}" class="btn btn-ghost"><i class="fa fa-phone"></i> Call</a>` : ''}
+      ${firstLink ? `<a href="${safeUrl(firstLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost"><i class="fa fa-link"></i> Open Link</a>` : ''}
       ${(!pdf && teraPdf) ? `<a href="${safeUrl(teraPdf)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost"><i class="fa fa-file-pdf"></i> Open TeraBox PDF</a>` : ''}
       ${(!image && teraImage) ? `<a href="${safeUrl(teraImage)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost"><i class="fa fa-image"></i> Open TeraBox Image</a>` : ''}
       ${tera ? `<a href="${safeUrl(tera)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost"><i class="fa fa-cloud"></i> Open TeraBox</a>` : ''}
@@ -1763,10 +1840,23 @@ function initMenu() {
   window.addEventListener('orientationchange', handleViewportChange, { passive: true });
 
   const currentFile = location.pathname.split('/').pop() || 'index.html';
-  document.querySelectorAll('.mob-nav-item').forEach((link) => {
-    const href = link.getAttribute('href') || '';
-    if (href === currentFile || (currentFile === '' && href === 'index.html')) {
+  const currentPath = currentFile.toLowerCase();
+  document.querySelectorAll('#navLinks a').forEach((link) => {
+    const href = (link.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (!href) return;
+    if (href === currentPath || (currentPath === '' && href === 'index.html')) {
       link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+  document.querySelectorAll('.mob-nav-item').forEach((link) => {
+    const href = (link.getAttribute('href') || '').split('/').pop().toLowerCase();
+    if (!href) return;
+    if (href === currentPath || (currentPath === '' && href === 'index.html')) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
     }
   });
 

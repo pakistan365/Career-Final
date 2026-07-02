@@ -35,14 +35,65 @@
   <link rel="apple-touch-icon" href="logo.webp" />
 
 </head>
-<body class="inner-mobile-grid">
-  <!-- ── Notification Bar ──────────────────────────────────── -->
-<div class="notif-bar" id="notifBar" style="display:none">
-  <div class="notif-track" id="notifTrack"></div>
-  <button class="notif-close" onclick="document.getElementById('notifBar').style.display='none'" aria-label="Close">
-    <i class="fa fa-times"></i>
-  </button>
-</div>
+
+<body>
+  <nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="/" class="nav-logo">
+      <picture>
+        <source srcset="logo.webp" type="image/webp">
+        <img src="logo.webp" alt="Career Pakistan" width="54" height="54" fetchpriority="high" decoding="async"/>
+      </picture>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li class="nav-drawer-close"><button id="navDrawerClose" aria-label="Close navigation"><i class="fa fa-times"></i></button></li>
+      <li><a href="index.html" class="active">Home</a></li>
+      <li class="has-dropdown">
+        <a href="scholarships.html">Scholarships <i class="fa fa-chevron-down fa-xs"></i></a>
+        <ul class="dropdown">
+          <li><a href="scholarships-national.html">National</a></li>
+          <li><a href="scholarships-international.html">International</a></li>
+        </ul>
+      </li>
+      <li class="has-dropdown">
+        <a href="jobs.html">Jobs <i class="fa fa-chevron-down fa-xs"></i></a>
+        <ul class="dropdown">
+          <li><a href="jobs-government.html">Government Jobs</a></li>
+          <li><a href="jobs-private.html">Private / NGO</a></li>
+        </ul>
+      </li>
+      <li><a href="internships.html">Internships</a></li>
+      <li class="has-dropdown">
+        <a href="exams.html">Exams <i class="fa fa-chevron-down fa-xs"></i></a>
+        <ul class="dropdown">
+          <li><a href="exams-mdcat.html">MDCAT</a></li>
+          <li><a href="exams-css.html">CSS</a></li>
+          <li><a href="exams-ppsc.html">PPSC</a></li>
+        </ul>
+      </li>
+      <li><a href="books.html">Books</a></li>
+      <li><a href="blog.html">Blog</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="nav-icon-btn" onclick="toggleSearch()" aria-label="Search"><i class="fa fa-search"></i></button>
+      <a href="favorites.html" class="nav-icon-btn" aria-label="Saved items">
+        <i class="fa fa-bookmark"></i>
+        <span class="fav-count" id="favCount" style="display:none">0</span>
+      </a>
+      <button class="nav-icon-btn" onclick="toggleDarkMode()" id="themeBtn" aria-label="Toggle dark mode"><i class="fa fa-moon"></i></button>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false"><i class="fa fa-bars"></i></button>
+    </div>
+  </div>
+  <div class="nav-search" id="navSearch">
+    <div class="nav-container">
+      <form action="search.html" method="GET" class="search-form-nav">
+        <i class="fa fa-search"></i>
+        <input type="text" name="q" id="navSearchInput" placeholder="Search jobs, scholarships, exams, books…"/>
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
 
 <nav class="navbar" id="navbar">
   <div class="nav-container">
@@ -184,9 +235,10 @@
         <a href="/" class="footer-logo">Career <span>Pakistan</span></a>
         <p>Pakistan's trusted platform for students and professionals — scholarships, jobs, internships, exams, and books updated daily.</p>
         <div class="footer-social">
-          <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-          <a href="https://facebook.com/careerpakistan" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-          <a href="https://instagram.com/careerpakistan" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+
+          <a href="https://www.instagram.com/fatima15301530/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://x.com/aicareeer" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="fab fa-x"></i></a>
+          <a href="https://www.facebook.com/careerpk.onlinee" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
         </div>
       </div>
       <div class="footer-col">

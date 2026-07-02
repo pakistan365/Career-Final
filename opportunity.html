@@ -233,9 +233,9 @@
       </picture>
     </a>
     <ul class="nav-links" id="navLinks">
-      <li class="nav-drawer-close"><button id="navDrawerClose" aria-label="Close navigation menu"><i class="fa fa-times"></i><span class="nav-close-label">Close</span></button></li>
-      <li><a href="index.html">Home</a></li>
-      <li><a href="university-admissions.html"><i class="fa fa-university fa-xs" style="margin-right:.3rem"></i>Admissions</a></li>
+
+      <li class="nav-drawer-close"><button id="navDrawerClose" aria-label="Close navigation"><i class="fa fa-times"></i></button></li>
+      <li><a href="index.html" class="active">Home</a></li>
       <li class="has-dropdown">
         <a href="scholarships.html">Scholarships <i class="fa fa-chevron-down fa-xs"></i></a>
         <ul class="dropdown">
@@ -520,9 +520,10 @@
         <a href="/" class="footer-logo">Career <span>Pakistan</span></a>
         <p>Pakistan's trusted platform for students and professionals — scholarships, jobs, internships, exams, and books updated daily.</p>
         <div class="footer-social">
-          <a href="https://wa.me/923001234567" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-          <a href="https://facebook.com/careerpakistan" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-          <a href="https://instagram.com/careerpakistan" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+
+          <a href="https://www.instagram.com/fatima15301530/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://x.com/aicareeer" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="fab fa-x"></i></a>
+          <a href="https://www.facebook.com/careerpk.onlinee" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
         </div>
       </div>
       <div class="footer-col">
@@ -697,24 +698,13 @@ function renderOpportunity(item, type) {
   // Hero image
   const imageUrl = item.imageUrl || item.image_url || (item.imageLinks&&item.imageLinks[0]) || (item.image_links&&item.image_links[0]) || '';
 
-  // Build a combined image gallery: hero image + any extra image links + image-type attachments
-  const galleryUrls = [];
-  if (imageUrl) galleryUrls.push(imageUrl);
-  (item.imageLinks || item.image_links || []).forEach(u => { if (u && !galleryUrls.includes(u)) galleryUrls.push(u); });
-  const pdfsForGallery = item.pdf_links || (item.pdf_link ? [item.pdf_link] : []);
-  pdfsForGallery.forEach(u => {
-    const ext = (u.split('?')[0].split('.').pop() || '').toLowerCase();
-    if (['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext) && !galleryUrls.includes(u)) galleryUrls.push(u);
-  });
-  const imageGallery = galleryUrls.map((u, i) => ({ url: u, label: i === 0 ? title : (title + ' — Image ' + (i+1)) }));
-  window.__oppGallery = imageGallery;
-
-  if (imageUrl) {
-    const imgEl = document.getElementById('oppImg');
-    imgEl.src = imageUrl;
-    imgEl.alt = title;
-    imgEl.title = 'Click to view full image';
-    imgEl.onclick = () => openMediaViewer(imageUrl, 'image', title, imageGallery);
+  const safeImageUrl = safeUrl(imageUrl);
+  if (safeImageUrl && safeImageUrl !== '#') {
+    const oppImg = document.getElementById('oppImg');
+    if (oppImg) {
+      oppImg.src = safeImageUrl;
+      oppImg.alt = title;
+    }
     document.getElementById('oppImgWrap').style.display = 'block';
   }
 
@@ -758,30 +748,22 @@ function renderOpportunity(item, type) {
   // PDF/document links
   const pdfs = item.pdf_links || (item.pdf_link ? [item.pdf_link] : []);
   const downloadLink = item.download_link || '';
-  const allPDFs = [...new Set([...pdfs, downloadLink ? downloadLink : ''].filter(Boolean))];
+  const allPDFs = [...new Set([...pdfs, downloadLink ? downloadLink : ''].filter(Boolean))]
+    .map((url) => safeUrl(url))
+    .filter((url) => url && url !== '#');
   if (allPDFs.length) {
     document.getElementById('oppPDFs').style.display = 'block';
     document.getElementById('oppPDFList').innerHTML = allPDFs.map((url, i) => {
-      const ext = (url.split('?')[0].split('.').pop() || '').toLowerCase();
-      const isImage = ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext);
-      const isPDF = ext === 'pdf';
-      const isDoc = ['doc','docx','xls','xlsx','ppt','pptx'].includes(ext);
-      let icon = 'fa-file-pdf'; let iconColor = '#dc2626'; let label = 'PDF Document';
-      if (isImage) { icon = 'fa-file-image'; iconColor = '#2563eb'; label = 'Image'; }
-      else if (isDoc) { icon = 'fa-file-word'; iconColor = '#1d4ed8'; label = 'Document'; }
-      const mediaType = isImage ? 'image' : 'pdf';
-      const docTitle = label + ' ' + (i + 1);
-      return `<div class="pdf-card">
-        <i class="fa ${icon} pdf-icon" style="color:${iconColor}"></i>
-        <span class="pdf-name">${docTitle}</span>
-        <div class="pdf-card-actions">
-          ${(isImage) ? `<button class="pdf-card-view" onclick="openMediaViewer('${escapeHtml(url)}','image','${docTitle}', window.__oppGallery || [])"><i class="fa fa-eye"></i> View</button>` : ''}
-          ${isPDF ? `<button class="pdf-card-view" onclick="openMediaViewer('${escapeHtml(url)}','pdf','${docTitle}')"><i class="fa fa-eye"></i> View</button>` : ''}
-          ${isDoc ? `<button class="pdf-card-view" onclick="openMediaViewer('${escapeHtml(url)}','office','${docTitle}')"><i class="fa fa-eye"></i> View</button>` : ''}
-          <a href="${escapeHtml(url)}" download target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:.4rem .85rem;font-size:.8rem;white-space:nowrap">
-            <i class="fa fa-download"></i> Download
-          </a>
-        </div>
+
+      const isPdf = isPdfUrl(url);
+      return `
+      <div class="pdf-card">
+        <i class="fa fa-file-pdf pdf-icon"></i>
+        <span class="pdf-name">Document ${i + 1}</span>
+        ${isPdf ? `<button type="button" class="btn btn-ghost" onclick="openResourcePreview('${escapeJsSingleQuote(url)}','${escapeJsSingleQuote(title)}')" style="padding:.4rem .85rem;font-size:.8rem;white-space:nowrap"><i class="fa fa-eye"></i> Preview</button>` : ''}
+        <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding:.4rem .85rem;font-size:.8rem;margin-left:auto;white-space:nowrap">
+          <i class="fa fa-download"></i> Open
+        </a>
       </div>`;
     }).join('');
   }
@@ -1007,7 +989,7 @@ function shareFacebook() {
   window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank');
 }
 function shareTwitter() {
-  window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(document.title) + '&url=' + encodeURIComponent(window.location.href), '_blank');
+  window.open('https://x.com/aicareeer?text=' + encodeURIComponent(document.title) + '&url=' + encodeURIComponent(window.location.href), '_blank');
 }
 function copyLink() {
   navigator.clipboard.writeText(window.location.href).then(() => {
